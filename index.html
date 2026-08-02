@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CFT Implementation Checklist</title>
+    <link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+    <style>
+:root{--bg:#f7f8fc;--sidebar:#fff;--card:#fff;--border:#e2e5f0;--border2:#c8ccde;--text:#1a1d2e;--text2:#6b7094;--text3:#9ca3c0;--active-bg:#E6F1FB;--active-text:#185FA5;--input-bg:#fff;--modal-bg:#fff;--drag-bg:#EBF4FF;--progress-bg:#eef0f7;--section-bg:#f7f8fc;--btn-sec:#f0f2f8;--btn-sec-text:#6b7094;--shadow:0 2px 12px rgba(0,0,0,.08)}
+[data-theme=dark]{--bg:#0f1117;--sidebar:#161b2e;--card:#1e2235;--border:#2a2f4a;--border2:#3d4466;--text:#e2e6f0;--text2:#8b90b8;--text3:#555a7a;--active-bg:#1a2a45;--active-text:#5ba3f5;--input-bg:#1e2235;--modal-bg:#1e2235;--drag-bg:#1a2a45;--progress-bg:#2a2f4a;--section-bg:#161b2e;--btn-sec:#252a40;--btn-sec-text:#8b90b8;--shadow:0 2px 12px rgba(0,0,0,.4)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100dvh}
+.app{display:flex;height:100vh;overflow:hidden;position:relative}
+.sidebar{width:248px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:transform .2s ease}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1050}
+.sidebar-overlay.open{display:block}
+.mobile-menu-btn{display:none}
+.sb-logo{height:54px;display:flex;align-items:center;gap:9px;padding:0 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:30px;height:30px;border-radius:8px;background:#185FA5;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0}
+.sb-logo-text{font-weight:700;font-size:13px;color:var(--text);line-height:1.3}
+.sb-nav{flex:1;overflow-y:auto;padding:8px}
+.sb-label{font-size:10px;font-weight:700;color:var(--text3);padding:10px 8px 4px;text-transform:uppercase;letter-spacing:.07em}
+.sb-btn{display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px;border-radius:7px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-size:12px;text-align:left;transition:all .12s}
+.sb-btn:hover{background:var(--btn-sec);color:var(--text)}
+.sb-btn.active{background:var(--active-bg);color:var(--active-text);font-weight:600}
+.sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sb-pct{margin-left:auto;font-size:10px;opacity:.7;flex-shrink:0}
+.sb-footer{padding:8px;border-top:1px solid var(--border);flex-shrink:0}
+.main-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.header{height:54px;background:var(--sidebar);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0}
+.header-search{flex:1;max-width:400px;position:relative}
+.header-search input{width:100%;height:32px;padding:0 10px 0 30px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:12px;outline:none}
+.header-search input:focus{border-color:#378ADD}
+.header-search i{position:absolute;left:8px;top:8px;font-size:15px;color:var(--text3)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.icon-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border2);background:var(--btn-sec);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .12s}
+.mobile-menu-btn{display:none}
+.icon-btn:hover{background:var(--input-bg);color:var(--text)}
+.main{flex:1;overflow-y:auto;padding:24px 28px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:6px}
+.stat-val{font-size:22px;font-weight:700}
+.pbar{height:5px;background:var(--progress-bg);border-radius:3px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.mod-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+.mod-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.sec-hdr{display:flex;align-items:center;gap:9px;padding:11px 14px;cursor:pointer;transition:background .12s,color .12s;user-select:none}
+@media(hover:hover) and (pointer:fine){.sec-hdr:hover{background:var(--section-bg)}}
+.module-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:4px}
+.module-head-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;min-width:0;overflow:visible}
+.module-head-title-row h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.module-head-actions{display:inline-flex;align-items:center;gap:2px;flex-wrap:nowrap;flex-shrink:0;margin-left:6px;max-width:100%;overflow:visible}
+.module-inline-actions{display:inline-flex;align-items:center;gap:4px;flex-wrap:nowrap;flex-shrink:0}
+.module-inline-actions .icon-btn{width:34px;height:30px;border-radius:6px;font-size:11px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;min-width:34px;border:1px solid var(--border2);background:var(--btn-sec);color:var(--text2);cursor:pointer;font-weight:600}
+.module-inline-actions .icon-btn:hover{background:var(--input-bg);color:var(--text)}
+.module-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid var(--border2);background:var(--btn-sec);color:var(--text2);cursor:pointer;font-size:14px;padding:0}
+.module-menu-wrap{position:relative;display:inline-flex;align-items:center}
+.module-menu{position:absolute;right:0;top:calc(100% + 6px);display:flex;flex-direction:column;gap:6px;min-width:140px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--card);box-shadow:var(--shadow);z-index:5;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-4px) scale(.98);transition:opacity .18s ease,transform .18s ease,visibility .18s ease}
+.module-menu.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1)}
+.sec-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.sec-title{font-weight:600;font-size:13px;color:var(--text);flex:1}
+.sec-meta{font-size:11px;color:var(--text2)}
+.sec-add-btn{display:flex;align-items:center;gap:3px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid transparent;cursor:pointer;background:transparent;margin-right:4px}
+.sec-chev{font-size:12px;color:var(--text3);transition:transform .2s ease;margin-left:4px}
+.sec-chev.open{transform:rotate(180deg)}
+.sec-body{max-height:0;opacity:0;overflow:hidden;padding:0 12px;border-top:1px solid transparent;transition:max-height .28s ease,opacity .2s ease,padding .28s ease,border-color .2s ease}
+.sec-body.open{max-height:10000px;opacity:1;padding:10px 12px;border-top:1px solid var(--border)}
+.sec-inner{padding:0;display:flex;flex-direction:column;gap:0}
+.task-item{display:flex;align-items:flex-start;gap:7px;padding:8px 10px;border:1px solid var(--border);border-radius:7px;background:var(--card);margin-bottom:5px;transition:border-color .12s}
+.task-item:hover{border-color:var(--border2)}
+.task-item.dragging{opacity:.35}
+.task-item.drag-over{border-color:#185FA5;border-style:dashed;background:var(--drag-bg)}
+.task-item.checked .task-text{text-decoration:line-through;color:var(--text3)}
+.task-item.checked{opacity:.6}
+.drag-grip{color:var(--text3);cursor:grab;flex-shrink:0;margin-top:2px;font-size:13px}
+.task-check{cursor:pointer;flex-shrink:0;margin-top:2px;width:14px;height:14px;accent-color:#185FA5}
+.task-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.task-text{flex:1;font-size:12.5px;line-height:1.5;color:var(--text);word-break:break-word}
+.task-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.task-actions{display:flex;gap:3px;flex-shrink:0;opacity:1;transition:opacity .12s;margin-left:auto}
+.task-menu-wrap{position:relative;display:none;align-items:center}
+.task-menu{display:flex;position:absolute;right:0;top:calc(100% + 6px);flex-direction:column;gap:6px;min-width:120px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--card);box-shadow:var(--shadow);z-index:6;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-4px) scale(.98);transition:opacity .18s ease,transform .18s ease,visibility .18s ease}
+.task-menu.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1)}
+@media(hover:hover) and (pointer:fine){.task-item:hover .task-actions{opacity:1}}
+.task-act-btn{width:22px;height:22px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px}
+.task-act-btn:hover{background:var(--btn-sec);color:var(--text)}
+.task-menu-btn.is-open{background:var(--btn-sec);color:var(--text);border-color:var(--border2)}
+.task-act-btn.del:hover{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
+@media(max-width:960px){.task-menu-wrap{display:inline-flex}.task-actions .task-menu-btn{display:flex}.task-actions > .tebtn,.task-actions > .tdbtn{display:none}}
+.module-action-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--btn-sec);color:var(--text2);cursor:pointer;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:78px;transition:opacity .15s,background .15s,color .15s}
+.module-action-btn:hover{background:var(--input-bg);color:var(--text)}
+.module-action-btn.is-loading{opacity:.9;cursor:wait;pointer-events:none}
+.module-action-btn.module-icon-btn{padding:5px;min-width:30px;height:30px}
+.module-action-btn.module-icon-btn .module-action-label{display:none}
+@media(max-width:960px){.module-head-actions .module-action-btn.module-icon-btn{padding:5px 10px;min-width:78px;height:auto}.module-head-actions .module-action-btn.module-icon-btn .module-action-label{display:inline}} 
+.btn-loader{width:11px;height:11px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.file-list-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9999}
+.file-list-card{background:var(--card);border:1px solid var(--border);border-radius:10px;width:min(520px,100%);max-height:80vh;overflow:hidden;box-shadow:var(--shadow)}
+.file-list-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border)}
+.file-list-body{padding:12px 14px;max-height:60vh;overflow:auto}
+.file-list-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border)}
+.file-list-item:last-child{border-bottom:none}
+.file-list-name{font-size:12px;color:var(--text);word-break:break-all}
+.file-list-btn{padding:5px 10px;border-radius:6px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-size:11px;font-weight:600}
+.file-list-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.file-action-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:var(--btn-sec);color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.file-action-btn:hover{background:var(--input-bg);color:var(--text)}
+.file-action-btn.danger{color:#A32D2D;border-color:#F09595;background:#FCEBEB}
+.file-action-btn.danger:hover{background:#F8D6D6}
+.inline-form{border:1.5px solid var(--border2);border-radius:8px;overflow:hidden;background:var(--card);margin:6px 0 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.inline-form textarea{width:100%;padding:8px 10px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--text);font-size:12.5px;outline:none;resize:none;min-height:84px;line-height:1.5;font-family:inherit}
+.inline-form-row{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--section-bg);flex-wrap:wrap}
+.inline-form-row .form-cancel,.inline-form-row .form-save{margin-left:0}
+.inline-form-row .form-save{min-width:92px;justify-content:center}
+.inline-form-row .form-cancel{margin-left:auto}
+@media(max-width:640px){.inline-form-row{align-items:stretch}.inline-form-row .prio-btn{flex:1;justify-content:center}.inline-form-row .form-cancel,.inline-form-row .form-save{width:100%;margin-left:0}.inline-form-row .form-cancel{order:2}.inline-form-row .form-save{order:3}}.prio-btn{padding:3px 9px;border-radius:8px;font-size:11px;font-weight:600;border:1px solid transparent;cursor:pointer}
+.form-save{padding:5px 14px;border-radius:6px;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;margin-left:auto}
+.form-cancel{padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.add-trigger{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:6px;padding:6px;border:1px dashed var(--border2);border-radius:7px;cursor:pointer;color:var(--text3);font-size:12px;background:transparent;width:100%}
+.add-trigger:hover{border-color:#185FA5;color:#185FA5;background:var(--active-bg)}
+.modal-overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--modal-bg);border:1px solid var(--border);border-radius:12px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:15px;font-weight:700;color:var(--text)}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:5px}
+.modal-close:hover{background:var(--btn-sec)}
+.modal-body{padding:20px}
+.field-label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.field-input{width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--input-bg);color:var(--text);font-size:13px;outline:none;font-family:inherit}
+.field-input:focus{border-color:#185FA5}
+.color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;transition:transform .1s;border:2px solid transparent;display:inline-block}
+.color-swatch.selected{border-color:var(--text);transform:scale(1.15)}
+.icon-opt{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:15px;color:var(--text2)}
+.icon-opt.selected{border-color:#185FA5;background:#E6F1FB;color:#185FA5}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:15px 20px;border-top:1px solid var(--border)}
+.btn-primary{padding:8px 20px;border-radius:7px;border:none;background:#185FA5;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.btn-secondary{padding:8px 16px;border-radius:7px;border:1px solid var(--border);background:var(--btn-sec);color:var(--text);font-size:13px;cursor:pointer}
+.btn-danger{padding:8px 18px;border-radius:7px;border:none;background:#E24B4A;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.clear-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:var(--btn-sec);color:var(--btn-sec-text);cursor:pointer;font-size:12px;font-weight:500}
+.clear-btn:hover{background:#FAEEDA;color:#854F0B;border-color:#EF9F27}
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;min-width:200px;max-width:340px;box-shadow:0 4px 16px rgba(0,0,0,.15);opacity:1;transition:opacity .3s}
+.toast.success{background:#185FA5;color:#fff}
+.toast.error{background:#E24B4A;color:#fff}
+.sr-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;cursor:pointer;margin-bottom:6px}
+.sr-item:hover{border-color:var(--border2)}
+mark{background:#fff3a0;color:#6b4c00;border-radius:2px;padding:0 2px}
+[data-theme=dark] mark{background:#5a4a00;color:#ffe066}
+.login-screen{position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-user-list{max-height:min(320px,35vh);overflow-y:auto;padding-right:4px}
+.progress-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 16px;margin-bottom:20px}
+.summary-toggle{display:none;align-items:center;justify-content:space-between;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);font-weight:700;margin-bottom:12px;cursor:pointer;color:var(--text)}
+.summary-toggle i{transition:transform .2s ease}
+.summary-content{max-height:1400px;opacity:1;overflow:hidden;transition:max-height .28s ease,opacity .2s ease,margin-bottom .28s ease}
+.summary-shell.is-collapsed .summary-content{max-height:0;opacity:0;margin-bottom:0;pointer-events:none}
+.summary-shell.is-collapsed .summary-toggle i{transform:rotate(-90deg)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media(max-width:960px){.mobile-menu-btn{display:flex}.app{position:relative}.sidebar{position:fixed;left:0;top:0;bottom:0;z-index:1100;width:min(86vw,280px);transform:translateX(-100%);box-shadow:0 0 0 1px rgba(0,0,0,.04)}.sidebar.open{transform:translateX(0)}.main-wrap{min-width:0}.header{height:auto;padding:12px 14px;flex-wrap:wrap;gap:8px}.header-search{order:2;width:100%;max-width:none}.header-right{order:1;width:100%;margin-left:0;justify-content:flex-end;flex-wrap:wrap}.header-right .mobile-menu-btn{margin-right:auto}.main{padding:16px}.stat-grid{grid-template-columns:repeat(2,1fr)}.mod-grid{grid-template-columns:1fr}.summary-toggle{display:flex}.module-head{align-items:flex-start}.module-head-title-row{align-items:flex-start;gap:8px}.module-menu-btn{display:flex}.module-head-actions > .module-action-btn{display:none}.module-menu-wrap{display:inline-flex;align-items:center}.sec-hdr{flex-wrap:wrap;gap:6px}.sec-title{width:100%}.sec-meta{width:100%;order:3}.sec-add-btn{margin-left:auto}.task-item{flex-wrap:wrap;gap:6px;align-items:center}.task-text{width:100%;padding-left:0}.task-actions{opacity:1;margin-left:auto}.inline-form-row{flex-direction:column;align-items:stretch}.form-save{margin-left:0}}@media(max-width:640px){.main{padding:12px}.stat-grid{grid-template-columns:1fr}.task-item{padding:8px}.task-badge{margin-left:auto}.header-right .clear-btn{display:none!important}.modal{max-width:calc(100vw - 24px)!important}.login-user-list{max-height:min(240px,32vh)}}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+  </head>
+  <body>
+
+    <!-- LOGIN -->
+    <div class="login-screen" id="loginScreen">
+      <div style="width:100%;max-width:420px">
+        <div style="text-align:center;margin-bottom:28px">
+          <div
+            style="width:56px;height:56px;border-radius:14px;background:#185FA5;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px;color:#fff"><i
+              class="ti ti-shield-check"></i></div>
+          <h1
+            style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">CFT
+            Implementation Checklist</h1>
+          <p style="font-size:13px;color:var(--text2)">Select your user to
+            continue</p>
+        </div>
+        <div
+          style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px">
+          <p
+            style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">SELECT
+            USER</p>
+          <div id="userListArea" class="login-user-list"></div>
+        </div>
+        <div
+          style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px">
+          <p
+            style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">ADD
+            NEW USER</p>
+          <p id="addUserHint"
+            style="font-size:11px;color:var(--text2);margin-bottom:10px">First
+            user will be Admin with full access.</p>
+          <div style="display:flex;gap:8px">
+            <input id="newUserInput" class="field-input"
+              placeholder="Enter your name..." />
+            <button id="addUserBtn"
+              style="padding:8px 14px;border-radius:7px;border:none;background:#185FA5;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap"><i
+                class="ti ti-plus"></i> Add</button>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:14px">
+          <button id="themeBtnLogin"
+            style="background:none;border:1px solid var(--border);border-radius:7px;padding:6px 14px;color:var(--text2);cursor:pointer;font-size:12px">
+            <i id="themeIconLogin" class="ti ti-moon"></i> Toggle theme
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- APP -->
+    <div id="appShell" style="display:none;width:100%;height:100vh">
+      <div class="app">
+        <aside id="appSidebar" class="sidebar">
+          <div class="sb-logo">
+            <div class="sb-logo-icon"><i class="ti ti-shield-check"></i></div>
+            <span class="sb-logo-text">CFT Implementation Checklist</span>
+          </div>
+          <div class="sb-nav" id="sbNav"></div>
+          <div class="sb-footer" id="sbFooter"></div>
+        </aside>
+        <div class="main-wrap">
+          <header class="header">
+            <div class="header-search"><i class="ti ti-search"></i><input
+                type="text" id="searchInput"
+                placeholder="Search checklist items..." /></div>
+            <div class="header-right">
+              <button id="mobileMenuBtn" class="icon-btn mobile-menu-btn" title="Open menu" aria-label="Open menu"><i class="ti ti-menu-2"></i></button>
+              <div
+                style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
+                <div id="syncDot"
+                  style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;animation:pulse 2s infinite"></div>
+                <span style="font-size:10px">Sync</span>
+              </div>
+              <button id="clearBtn" class="clear-btn" style="display:none"><i
+                  class="ti ti-square-check" style="font-size:14px"></i><span
+                  id="clearBtnLabel">Clear Checks</span></button>
+              <button id="themeBtn" class="icon-btn"
+                title="Toggle dark/light mode"><i id="themeIcon"
+                  class="ti ti-moon"></i></button>
+              <span id="userBadge"
+                style="font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:#E9E7F7;color:#4B3FAA">-</span>
+              <div id="userAvatar"
+                style="width:32px;height:32px;border-radius:50%;background:#185FA5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer"
+                title="Switch user">?</div>
+            </div>
+          </header>
+          <main id="mainContent" class="main"></main>
+        </div>
+      </div>
+    </div>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+var ORIGINAL_DATA = [
+  {id:"prereq",name:"Pre-requisites",icon:"ti-server",color:"#185FA5",bg:"#E6F1FB",order:0,tasks:[
+    {id:"prereq_t0",text:"Tomcats to be ready (java space......)in both WEB/ Compute",priority:"critical",order:0},
+    {id:"prereq_t1",text:"Java version to be as the uat in both WEB/ Compute",priority:"critical",order:1},
+    {id:"prereq_t2",text:"Cretificates to be as the uat (all compute and web can reach each other, also jobs like watchers to access the correct cretificates)",priority:"minor",order:2},
+    {id:"prereq_t3",text:"Import all roles and privillge from UAT DG UM to prod DG UM",priority:"critical",order:3},
+    {id:"prereq_t4",text:"DG UM to be up and running",priority:"critical",order:4},
+    {id:"prereq_t5",text:"ECM to be up and running",priority:"critical",order:5},
+    {id:"prereq_t6",text:"Active mq to be up and running",priority:"critical",order:6},
+    {id:"prereq_t7",text:"dg-flow to be up and running (import all workflows from UAT publish them)",priority:"critical",order:7},
+    {id:"prereq_t8",text:"Get all cases defintions from UAT DGCMGMT DB",priority:"minor",order:8},
+    {id:"prereq_t9",text:"Ensure that CRP is up and running to enable onboarding/ KYC integration",priority:"critical",order:9},
+    {id:"prereq_t10",text:"PKG in Compute server",priority:"minor",order:10},
+    {id:"prereq_t11",text:"Take all PKG from UAT (upgrade version) compute server (DG_SNCT, apps, Jobs \u2026\u2026)",priority:"minor",order:11},
+    {id:"prereq_t12",text:"PKG in WEB server",priority:"minor",order:12},
+    {id:"prereq_t13",text:"Take CFT UI app from UAT (upgrade version) WEB server",priority:"minor",order:13},
+    {id:"prereq_t14",text:"Activities in Prod",priority:"minor",order:14},
+    {id:"prereq_t15",text:"Ensure that the Infra team deploys the correct package, which is currently implemented and validated in the UAT environment.",priority:"critical",order:15},
+    {id:"prereq_t16",text:"Ensure that the java space used in both CFT tomcats are reasonable",priority:"critical",order:16},
+    {id:"prereq_t17",text:"Ensure that Entity_watch_list_dim and FSC_PARTY_DIM tables have data and FSC_STAKEHOLDER \"if any\"",priority:"critical",order:17},
+    {id:"prereq_t18",text:"Ensure that Entity_watch_list_dim and snct_lookup have same data type and size, and ensure that all records that have DOB have YOB",priority:"critical",order:18},
+    {id:"prereq_t19",text:"Run wluj, ensure data moved successfully with no issues",priority:"critical",order:19},
+    {id:"prereq_t20",text:"Ensure that FSC_PARTY_DIM and party_household have same data type and size, and ensure that all records have DOB have YOB",priority:"critical",order:20},
+    {id:"prereq_t21",text:"Run phuj ensure data moved successfully with no issues",priority:"critical",order:21},
+    {id:"prereq_t22",text:"Configure all the apps, services and jobs that are found in prod env \"in Compute and WEB servers\"",priority:"critical",order:22},
+    {id:"prereq_t23",text:"Ensure if CFT engine is running or not \"check the wsdl\"",priority:"major",order:23},
+    {id:"prereq_t24",text:"Prepare the needed path for database connections, logs, backup folders",priority:"minor",order:24},
+    {id:"prereq_t25",text:"Create a user in DG UM and give it all needed privillges",priority:"critical",order:25},
+    {id:"prereq_t26",text:"ECM/CFT UI integration from ECM settings in External Apps",priority:"critical",order:26},
+    {id:"prereq_t27",text:"Ensure that CFT UI accessiable, side bar have all needed modules",priority:"critical",order:27},
+    {id:"prereq_t28",text:"Ensure the workflows are found and linked with correct modules",priority:"critical",order:28},
+    {id:"prereq_t29",text:"Ensure the ecm settings (case types, case statuses) are found and correct, remove unneeded case types, ensure all coulmns are main columns)",priority:"critical",order:29},
+    {id:"prereq_t30",text:"Send a web request from the CFT UI and ensure if it will create case (to ensure that cft ui can reach the engine), report, workflow visible inside the case",priority:"critical",order:30},
+    {id:"prereq_t31",text:"Check if modules' settings working and creating cases",priority:"major",order:31},
+    {id:"prereq_t32",text:"Delete all created cases",priority:"minor",order:32},
+    {id:"prereq_t33",text:"Prepare the cft jobs batch files and include them in ETL batch.",priority:"minor",order:33},
+    {id:"prereq_t34",text:"If there are watchers (ACH, SWIFT, ISO) create a service for each watcher, ensure that the service run on same Java version as in UAT",priority:"critical",order:34},
+    {id:"prereq_t35",text:"If there is a SWIFT module implement then run BICS loader, MT loader, ensure the related tables are found and full of data (mt , field , mt_field, BICS_LOOKUP , snct_currency_lkp , snct_country_lkp)",priority:"critical",order:35},
+    {id:"prereq_t36",text:"If there is a SWIFT module implement then run MT loader, ensure the related tables are found and full of data (mt , field , mt_field)",priority:"critical",order:36},
+    {id:"prereq_t37",text:"If there is an ISO module implement and run BICS loader, MX loader, ensure the related tables are found and full of data (BICS_LOOKUP , snct_currency_lkp , snct_country_lkp , Messagedefinition , Message_elements , Xmltaglookup , Element , Complextype , BusinessArea)",priority:"critical",order:37},
+    {id:"prereq_t38",text:"If there is an ISO module implement and run MX loader, ensure the related tables are found and full of data (Messagedefinition , Message_elements , Xmltaglookup , Element , Complextype , BusinessArea)",priority:"critical",order:38},
+    {id:"prereq_t39",text:"If there is an ACH module implement and run BICS loader, ensure the related tables are found and full of data (BICS_LOOKUP , snct_currency_lkp , snct_country_lkp)",priority:"critical",order:39},
+    {id:"prereq_t40",text:"Ensure if there are specific Library needed like in FIB bank \"orai18n-19.3.0.0.jar\"",priority:"major",order:40},
+    {id:"prereq_t41",text:"Ensure that cft modules' settings (matching level and lists) are the same of old Production \"this for clients have old cft production but if there is not please set matching level to High as default value and check on all lists\"",priority:"critical",order:41},
+    {id:"prereq_t42",text:"Ensure that SWIFT MT fields are the same of ones in old production (checked, unchecked)",priority:"critical",order:42},
+    {id:"prereq_t43",text:"Ensure that SWIFT MX fields are the required ones (there are screens show that) as ones in MIDB prod",priority:"critical",order:43},
+    {id:"prereq_t44",text:"Make sure the search limit to 500 in the engine configuration file, if not mentioned otherwise",priority:"major",order:44},
+    {id:"prereq_t45",text:"Make sure that the screening rules on Production server, are correct like done on UAT environment",priority:"critical",order:45},
+    {id:"prereq_t46",text:"If we used in UAT differnet DB name like in FIB \"DGCMGMT_NEW \". In production the DGCMGMT DB will be DGCMGT NOT DGCMGMT_NEW So we will need to edit: 1- the stored prosedures of daily1 , daily1 pep in dgcftcore 2- insert whitelist, create whitelist in dgcft 3- the cft ui app in web server 4- the sanction service app",priority:"critical",order:46},
+    {id:"prereq_t47",text:"Edit the users used by the client through DG UM in production \"We need to give each one the right privilleges, according to the list bank provided or reference to old production\"",priority:"critical",order:47}
+  ]},
+  {id:"web_psc",name:"WEB & PSC",icon:"ti-world",color:"#3B6D11",bg:"#EAF3DE",order:1,tasks:[
+    {id:"web_psc_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"web_psc_t1",text:"Ensure that cft ui app is implemented correctly \"logo,DB config, active mq queue name, hostname and port\" and working fine",priority:"critical",order:1},
+    {id:"web_psc_t2",text:"Make sure that WLUJ and PHUJ ran and Snct_lookup and party_household full of data",priority:"critical",order:2},
+    {id:"web_psc_t3",text:"Ensure that CFT UI is accessable and the module \"Watch List Search, Customer Manual Search\" appears on sidebar",priority:"critical",order:3},
+    {id:"web_psc_t4",text:"Ensure that settings works fine and create cases in CFT UI, set the matching level to HIGH \"default\" and that the lists are found in the list management as found in table snct_lookup \"watchlist_name column\" in WEB , in PSC only set matching level to High",priority:"critical",order:4},
+    {id:"web_psc_t5",text:"Send request from cft ui \"web or psc\" , press submit, check if it will return result , create report or not , create case or not",priority:"major",order:5},
+    {id:"web_psc_t6",text:"Check the logo of the report if it is correct or not. If the task is related to an internal activity or a non-decisive client, the logo should be removed accordingly.",priority:"major",order:6},
+    {id:"web_psc_t7",text:"Check if the request is saved in dbo.request details table and dbo.message",priority:"major",order:7},
+    {id:"web_psc_t8",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:8},
+    {id:"web_psc_t9",text:"Check the case, If the wf works or not ,Txn body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship, sources, key words, key data ,Case attachment ,Comments ,Case history",priority:"major",order:9},
+    {id:"web_psc_t10",text:"Check that the column of Full Name is shown in the ECM columns and in Search Criteria",priority:"critical",order:10},
+    {id:"web_psc_t11",text:"Check that the workflow is working fine",priority:"critical",order:11}
+  ]},
+  {id:"bulk",name:"BULK & CUSTBULK",icon:"ti-table",color:"#854F0B",bg:"#FAEEDA",order:2,tasks:[
+    {id:"bulk_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"bulk_t1",text:"Ensure that cft ui app is implemented correctly \"DB config, active mq queue name, hostname and port, output paths for both BULK and CUSTBULK modules\" and working fine",priority:"critical",order:1},
+    {id:"bulk_t2",text:"Make sure that WLUJ and PHUJ ran and Snct_lookup and party_household full of data",priority:"critical",order:2},
+    {id:"bulk_t3",text:"Ensure that CFT UI is accessable and the module \"Bulk Search, Customer Bulk Search\" appears on sidebar",priority:"critical",order:3},
+    {id:"bulk_t4",text:"Ensure that settings works fine and create cases in CFT UI, set the matching level to HIGH \"default\" and that the lists are found in the list management as found in table snct_lookup\"watchlist_name column\" in Bulk , in Custbulk only set matching level to High",priority:"critical",order:4},
+    {id:"bulk_t5",text:"Ensure that the templates download successfullly",priority:"critical",order:5},
+    {id:"bulk_t6",text:"Upload sheet has correct data from cft ui , press submit, check if it will create case or not, and check the result sheet in the output path",priority:"major",order:6},
+    {id:"bulk_t7",text:"Check if the request is saved in dbo.request details table and dbo.message",priority:"major",order:7},
+    {id:"bulk_t8",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:8},
+    {id:"bulk_t9",text:"Check the case, If the wf works or not ,Txn body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship, sources, key words, key data ,Case attachment ,Comments ,Case history",priority:"major",order:9},
+    {id:"bulk_t10",text:"Check that the file output of uploaded file in saved in the correct file path",priority:"major",order:10},
+    {id:"bulk_t11",text:"Check that the workflow is working fine",priority:"critical",order:11},
+    {id:"bulk_t12",text:"Make sure that the screening roles are implemented just like the BRD",priority:"critical",order:12}
+  ]},
+  {id:"delta",name:"Delta Module",icon:"ti-refresh",color:"#533AB7",bg:"#EEEDFE",order:3,tasks:[
+    {id:"delta_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"delta_t1",text:"Ensure that Delta jobs are implemented correctly \"DB config, logs path and job path\", wsdl of engine",priority:"critical",order:1},
+    {id:"delta_t2",text:"Make sure that WLUJ and PHUJ ran before",priority:"critical",order:2},
+    {id:"delta_t3",text:"Ensure that it is running on the correct java version",priority:"critical",order:3},
+    {id:"delta_t4",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:4},
+    {id:"delta_t5",text:"Make sure in the UI Delta section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:5},
+    {id:"delta_t6",text:"Before the run make sure that the data looks normal and that there is no issues like Year of birth is extracted from date of birth.",priority:"critical",order:6},
+    {id:"delta_t7",text:"Make sure the columns SCREENING_DATE, RESULT, ERROR_DESC are found in both tables, FSC_ENTITY_WATCHLIST_DIM and FSC_PARTY_DIM",priority:"critical",order:7},
+    {id:"delta_t8",text:"Run the Delta job and check if it prints the log correctly",priority:"major",order:8},
+    {id:"delta_t9",text:"Check if the request is saved in dbo.request details table and dbo.message",priority:"major",order:9},
+    {id:"delta_t10",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:10},
+    {id:"delta_t11",text:"Check the logs \"engine, tomcat, job\" if it contains issue or not, if no case creation occurred or failure in any record while running the job",priority:"critical",order:11},
+    {id:"delta_t12",text:"Ensure that the batch file has the right path of the jobs",priority:"critical",order:12},
+    {id:"delta_t13",text:"For Daily1 make sure that the table \"FSC_DAILY1_PARTY_MATCHES\" and empty before running daily1 job to avoid any case creation issue is found in DGCFTWL db/ DGCFTCORE",priority:"critical",order:13},
+    {id:"delta_t14",text:"For Daily1 make sure that the stored procedure \"DAILY1_CASE_CREATION_PROC\" is found in DGCFTWL db/ DGCFTCORE",priority:"critical",order:14},
+    {id:"delta_t15",text:"\"Only if the used DB is Oracle check if this table \"\"TOP_COLUMN_NAME\"\" is found and has those columns (\"\"PARTY_KEY\"\" , \"\"MATCH_TYPE\"\", \"\"INCIDENT_VAL\"\" , \"\"COLUMN_NAME\"\", \"\"STAKEHOLDER_KEY\"\" , \"\"ROWNO\"\" )\"",priority:"critical",order:15},
+    {id:"delta_t16",text:"For Daily1 make sure that all functions are found in DGCFTWL db/ DGCFTCORE \"getAliases getConrel getEntityWatchListRemarks getKeyDelta getKeyWords getMatchingLevel getNameAndCategoryFromWchk getPartyRemarks getPEPStakeholderPartyRemarks (for daily1 pep) getStakeholderPartyRemarks splitString\"",priority:"critical",order:16},
+    {id:"delta_t17",text:"Check the case, If the wf works or not ,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:17},
+    {id:"delta_t18",text:"Make sure if there is any condition to be added in the Daily2 job \"ex:like party_status_desc <>'Closed',....\" and in Daily1 job \"ex: type_desc not in ('INDIVIDUAL','ORGANIZATION','OTHER')\"",priority:"critical",order:18},
+    {id:"delta_t19",text:"Make sure that the columns \"case description, rim number, and customer full name\" are shown in the ecm in order for data to be shown. Also found in the search criteria so that the client can use them while filtering",priority:"critical",order:19},
+    {id:"delta_t20",text:"Make sure that the party number gets saved in COL2 in case_live in both daily1 and daily2",priority:"critical",order:20},
+    {id:"delta_t21",text:"Make sure that the screening roles are implemented just like the BRD",priority:"critical",order:21},
+    {id:"delta_t22",text:"Check that the workflow is working fine",priority:"critical",order:22}
+  ]},
+  {id:"deltapep",name:"Delta PEP Module",icon:"ti-user-shield",color:"#993556",bg:"#FBEAF0",order:4,tasks:[
+    {id:"deltapep_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"deltapep_t1",text:"Ensure that Delta jobs are implemented correctly \"DB config, logs path and job path\", wsdl of engine",priority:"critical",order:1},
+    {id:"deltapep_t2",text:"Make sure that WLUJ and PHUJ ran before",priority:"critical",order:2},
+    {id:"deltapep_t3",text:"Ensure that it is running on the correct java version",priority:"critical",order:3},
+    {id:"deltapep_t4",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:4},
+    {id:"deltapep_t5",text:"Make sure in the UI Delta section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:5},
+    {id:"deltapep_t6",text:"Before the run make sure that the data looks normal and that there is no issues like Year of birth is extracted from date of birth.",priority:"critical",order:6},
+    {id:"deltapep_t7",text:"Make sure the columns SCREENING_DATE, RESULT, ERROR_DESC are found in both tables, FSC_ENTITY_WATCHLIST_DIM and FSC_PARTY_DIM",priority:"critical",order:7},
+    {id:"deltapep_t8",text:"Run the Delta job and check if it prints the log correctly",priority:"major",order:8},
+    {id:"deltapep_t9",text:"Check if the request is saved in dbo.request details table and dbo.message",priority:"major",order:9},
+    {id:"deltapep_t10",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:10},
+    {id:"deltapep_t11",text:"Check the logs \"engine, tomcat, job\" if it contains issue or not, if no case creation occurred or failure in any record while running the job",priority:"critical",order:11},
+    {id:"deltapep_t12",text:"Ensure that the batch file has the right path of the jobs",priority:"critical",order:12},
+    {id:"deltapep_t13",text:"For Daily1 make sure that the table \"FSC_DAILY1_PEP_PARTY_MATCHES\" and empty before running daily1 job to avoid any case creation issue is found in DGCFTWL db/ DGCFTCORE",priority:"critical",order:13},
+    {id:"deltapep_t14",text:"For Daily1 make sure that the stored procedure \"DAILY1_PEP_CASE_CREATION_PROC\" is found in DGCFTWL db/ DGCFTCORE",priority:"critical",order:14},
+    {id:"deltapep_t15",text:"Only in oracle check if this table \"TOP_COLUMN_NAME\" is found and have those columns (\"PARTY_KEY\" , \"MATCH_TYPE\", \"INCIDENT_VAL\" , \"COLUMN_NAME\", \"STAKEHOLDER_KEY\" , \"ROWNO\" )",priority:"critical",order:15},
+    {id:"deltapep_t16",text:"For Daily1 make sure that all functions are found in DGCFTWL db/ DGCFTCORE \"getAliases getConrel getEntityWatchListRemarks getKeyDelta getKeyWords getMatchingLevel getNameAndCategoryFromWchk getPartyRemarks getPEPStakeholderPartyRemarks (for daily1 pep) getStakeholderPartyRemarks splitString\"",priority:"critical",order:16},
+    {id:"deltapep_t17",text:"Check the case, If the wf works or not ,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:17},
+    {id:"deltapep_t18",text:"Make sure if there is any condition to be added in the Daily2 job \"ex:like party_status_desc <>'Closed',....\" and in Daily1 job \"ex: type_desc not in ('INDIVIDUAL','ORGANIZATION','OTHER')\"",priority:"critical",order:18},
+    {id:"deltapep_t19",text:"Make sure that the columns \"case description, rim number, and customer full name\" are shown in the ecm in order for data to be shown. Also found in the search criteria so that the client can use them while filtering",priority:"critical",order:19},
+    {id:"deltapep_t20",text:"Make sure that the party number gets saved in COL2 in case_live in both daily1 and daily2",priority:"critical",order:20},
+    {id:"deltapep_t21",text:"Make sure that the screening roles are implemented just like the BRD",priority:"critical",order:21},
+    {id:"deltapep_t22",text:"Check that the workflow is working fine",priority:"critical",order:22}
+  ]},
+  {id:"swiftmt",name:"SWIFT-MT Watcher",icon:"ti-arrows-exchange",color:"#0F6E56",bg:"#E1F5EE",order:5,tasks:[
+    {id:"swiftmt_t0",text:"Ensure that engine \"preferably separate tomcat for engine without certificate to avoid any network issues\" is working fine",priority:"critical",order:0},
+    {id:"swiftmt_t1",text:"Ensure that Swift MT watcher is implemented correctly \"DB config, logs path and job path, wsdl of engine\"",priority:"critical",order:1},
+    {id:"swiftmt_t2",text:"Make sure that Bic_Loader job gets run",priority:"critical",order:2},
+    {id:"swiftmt_t3",text:"Make sure that FileMover job is found to take samples to be copied in another folder for watcher to screen \"will work on sample till all transactions in the main folder cleared\"",priority:"critical",order:3},
+    {id:"swiftmt_t4",text:"Make sure that MT-Loader job gets run, 1- Check if \"mt\", \"field\", \"mt_field\" tables are found in DGCFT DB or not 2- Check if folder (MTs_Files )is found or not in the correct path of this job (we put here the files that this job work on it) 3- Check configuation files \"config.properties\" that contains db connections, folder's path and \" log4j.proprties\" that has the log path are correct or not 4- If oracle : run 2 queries in sql developer \"MT_NO_TAGS table script\" \"NO_TAGS_MT_FIELDS table script\" u will find them in \"ORACLE_config_reference.properties\" file inside resources folder in mt loader jar 5- If sql: no need to run those 2 queries just run job 6- Truncate the 3 tables if we are in UAT environment 7- Run the MT_loader as any job \"java -jar name of job\" then check log file 8- Check if the tables are full with data or not and no issues in logs",priority:"critical",order:4},
+    {id:"swiftmt_t5",text:"Ensure that it is running on the correct java version",priority:"critical",order:5},
+    {id:"swiftmt_t6",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:6},
+    {id:"swiftmt_t7",text:"Make sure that the Swift MT categories are shown in the UI section 'MT Configs', and for each SWIFT MT categories, the fields are shown when clicking on it.",priority:"critical",order:7},
+    {id:"swiftmt_t8",text:"Ensure that the service run on same Java version as in UAT \"production env\"",priority:"critical",order:8},
+    {id:"swiftmt_t9",text:"Make sure in the UI Swift MT section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:9},
+    {id:"swiftmt_t10",text:"Make sure that you can add free text, after accepting the case. it listened in the UI in section \"Free Text Configs\"",priority:"critical",order:10},
+    {id:"swiftmt_t11",text:"Make sure that you can add MT Rules, after accepting the case. it gets listened in the UI in section \"MT-Rules\"",priority:"critical",order:11},
+    {id:"swiftmt_t12",text:"Make sure that the folders \"Source, Approve, Destination, Error, Reject, Archive\"",priority:"critical",order:12},
+    {id:"swiftmt_t13",text:"Run the service in order for the job and check if it prints the log correctly",priority:"major",order:13},
+    {id:"swiftmt_t14",text:"Check if the request is saved in dbo.request details and message tables",priority:"major",order:14},
+    {id:"swiftmt_t15",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:15},
+    {id:"swiftmt_t16",text:"Check the logs \"engine, tomcat, job\" if it contains issue or not, if no case creation occurred or failure in any transaction while running the job",priority:"critical",order:16},
+    {id:"swiftmt_t17",text:"Check the case,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:17},
+    {id:"swiftmt_t18",text:"Make sure that the columns \"mentioned in the BRD: Swift Reference, Message direction, amount, ....\" are shown in the ecm in order for data to be shown. Also found in the search criteria so that the client can use them while filtering",priority:"critical",order:18},
+    {id:"swiftmt_t19",text:"Make sure that the status codes in the Watcher just like the ones are found when building the workflows",priority:"critical",order:19},
+    {id:"swiftmt_t20",text:"Make sure that the prefix codes in the watcher.properties are like in the table SWFRM \"MTin, MTfrom\"",priority:"critical",order:20},
+    {id:"swiftmt_t21",text:"Check that the workflow is working fine, and after closing the case with closed true hit or closed false hit the transaction file gets directed to the right folder",priority:"critical",order:21},
+    {id:"swiftmt_t22",text:"If there was agreement with bank on production enviromnment for transactions in SOURCE, ACCEPT, REJECT to be external folders, it is a must to be simulated on UAT and monitor the job for estimate a week or 2",priority:"minor",order:22}
+  ]},
+  {id:"swiftmx",name:"SWIFT-MX Watcher",icon:"ti-arrows-exchange-2",color:"#185FA5",bg:"#E6F1FB",order:6,tasks:[
+    {id:"swiftmx_t0",text:"Ensure that engine \"preferably separate tomcat for engine without certificate to avoid any issues\" is working fine",priority:"critical",order:0},
+    {id:"swiftmx_t1",text:"Ensure that Swift MX watcher is implemented correctly \"DB config, logs path and job path, wsdl of engine\"",priority:"critical",order:1},
+    {id:"swiftmx_t2",text:"Make sure that Bic_Loader job gets run",priority:"critical",order:2},
+    {id:"swiftmx_t3",text:"Make sure that FileMover job is found to take samples to be copied in another folder for watcher to screen \"will work on sample till all transactions in the main folder cleared\"",priority:"critical",order:3},
+    {id:"swiftmx_t4",text:"Make sure that MX-Loader job gets run 1-Check if \"dbo.Messagedefinition\", \"dbo.Message_elements\", \"dbo.Xmltaglookup\", ''dbo.Element\" , \"dbo.Complextype\" , \"dbo.BusinessArea\" tables are found in DGCFT DB or not 2- Take bakups of tables, then truncate table \"dbo.Message_elements\", \"dbo.Messagedefinition\" ''dbo.Element\" , \"dbo.Complextype\" , tables if they are already exist in environment . Don't truncate \"dbo.BusinessArea\" and \"dbo.Xmltaglookup\" tables 3- Check if folders \"MX_Files\" , \"Mxmessages\" are found or not in the correct path of this job. \"MX_Files\"here we put the files that this job work on them . \"Mxmessages\" here we put service.xml file that contains the names of msgs and the related file to each msg 4- Check configuation files \"config.properties\" that contains db connections, folders path and \" log4j.proprties\" that has the log path are correct or not 5- Run the MX_loader as any job \"java -jar name of job\" then check log file 6- After runing job run MX_default_screening_types script 7- Check if tables have data in DB (I found Xmltaglookup empty)and if the BA config in UI is full with data",priority:"critical",order:4},
+    {id:"swiftmx_t5",text:"Ensure that it is running on the correct java version",priority:"critical",order:5},
+    {id:"swiftmx_t6",text:"Ensure that the service run on same Java version as in UAT \"production env\"",priority:"critical",order:6},
+    {id:"swiftmx_t7",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:7},
+    {id:"swiftmx_t8",text:"Make sure that the Swift MX business area are shown in the UI section 'Business Area Configs', and for each SWIFT MX attributes when click on any message definition , and all screening types when click on any attribute .",priority:"critical",order:8},
+    {id:"swiftmx_t9",text:"Make sure in the UI Swift MX section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:9},
+    {id:"swiftmx_t10",text:"Make sure that you can add free text, after accepting the case. it listened in the UI in section \"Free Text Configs\"",priority:"critical",order:10},
+    {id:"swiftmx_t11",text:"Make sure that you can add MX Rules, after accepting the case. it gets listened in the UI in section \"MX-Rules\"",priority:"critical",order:11},
+    {id:"swiftmx_t12",text:"Make sure that the folders \"Source, Approve, Destination, Error, Reject, Archive\" are created",priority:"critical",order:12},
+    {id:"swiftmx_t13",text:"Run the service in order for the job and check if it prints the log correctly",priority:"major",order:13},
+    {id:"swiftmx_t14",text:"Check if the request is saved in dbo.request details and dbo.messages tables",priority:"major",order:14},
+    {id:"swiftmx_t15",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:15},
+    {id:"swiftmx_t16",text:"Check the logs \"engine, tomcat, job\" if it contains issue or not, if no case creation occurred or failure in any transaction while running the job",priority:"critical",order:16},
+    {id:"swiftmx_t17",text:"Check the case,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:17},
+    {id:"swiftmx_t18",text:"Make sure that the columns \"mentioned in the BRD: Swift Reference, Message direction, amount, ....\" are shown in the ecm in order for data to be shown. Also found in the search criteria so that the client can use them while filtering",priority:"critical",order:18},
+    {id:"swiftmx_t19",text:"Make sure that the status codes in the Watcher just like the ones are found when building the workflows",priority:"critical",order:19},
+    {id:"swiftmx_t20",text:"Check that the workflow is working fine, and after closing the case with closed true hit or closed false hit the transaction file gets directed to the right folder",priority:"critical",order:20},
+    {id:"swiftmx_t21",text:"If there was agreement with bank on production enviromnment for transactions in SOURCE, ACCEPT, REJECT to be external folders, it is a must to be simulated on UAT and monitor the job for estimate a week or 2",priority:"minor",order:21}
+  ]},
+  {id:"achwatcher",name:"ACH Watcher",icon:"ti-repeat",color:"#854F0B",bg:"#FAEEDA",order:7,tasks:[
+    {id:"achwatcher_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"achwatcher_t1",text:"Ensure that ACH-Watcher job is implemented correctly \"DB config, logs path and job path, wsdl of engine\"",priority:"critical",order:1},
+    {id:"achwatcher_t2",text:"Make sure that Bic_Loader job gets run",priority:"critical",order:2},
+    {id:"achwatcher_t3",text:"Ensure that it is running on the correct java version",priority:"critical",order:3},
+    {id:"achwatcher_t4",text:"Ensure that the service run on same Java version as in UAT \"production env\"",priority:"critical",order:4},
+    {id:"achwatcher_t5",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:5},
+    {id:"achwatcher_t6",text:"Make sure in the UI ACH section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:6},
+    {id:"achwatcher_t7",text:"Make sure that the folders \"Source, Approve, Destination, Error, Reject, Archive\" are created",priority:"critical",order:7},
+    {id:"achwatcher_t8",text:"Run the service in order for the job and check if it prints the log correctly",priority:"major",order:8},
+    {id:"achwatcher_t9",text:"Check if the request is saved in dbo.request details table",priority:"major",order:9},
+    {id:"achwatcher_t10",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:10},
+    {id:"achwatcher_t11",text:"Check the logs \"engine, tomcat, job\" if it contains issue or not, if no case creation occurred or failure in any transaction while running the job",priority:"critical",order:11},
+    {id:"achwatcher_t12",text:"Check the case,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:12},
+    {id:"achwatcher_t13",text:"Check that the workflow is working fine, and after closing the case with closed true hit or closed false hit the transaction file gets directed to the right folder",priority:"critical",order:13},
+    {id:"achwatcher_t14",text:"1- ACH watcher path ex: E:\\DGSystem\\DG-CFT\\CFT-Jobs\\cft-ach-watcher 2- Please note the following behavior while checking the ACH watcher: If the messages get a hit, they are directed to the Pending folder. If the messages get no hit, they are directed to the Destination/Approved folder. However, after making a decision in the workflow and closing the case with Closed True Hit, the messages in the Pending folder are not moved to the Rejected or Approved folders. [Eng Bassam comment regarding the point above]In the ach watcher there is no meaning of moving the messages through folders, as the main objective of the achWatcher is to screen the messages not to route them like the swiftWatcher.",priority:"critical",order:14}
+  ]},
+  {id:"achrt",name:"ACH Realtime",icon:"ti-bolt",color:"#A32D2D",bg:"#FCEBEB",order:8,tasks:[
+    {id:"achrt_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"achrt_t1",text:"Make sure that Bic_Loader job gets run",priority:"critical",order:1},
+    {id:"achrt_t2",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:2},
+    {id:"achrt_t3",text:"Make sure in the UI ACH section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:3},
+    {id:"achrt_t4",text:"Check if the request is saved in dbo.request details and achrequests",priority:"major",order:4},
+    {id:"achrt_t5",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:5},
+    {id:"achrt_t6",text:"Check the logs \"engine, tomcat, ach_ws1.log\" if it contains issue or not, if no case creation occurred or failure in any transaction while sending requests",priority:"critical",order:6},
+    {id:"achrt_t7",text:"Check the case,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:7},
+    {id:"achrt_t8",text:"Make sure that the callback service URL is configured correclty and the request and responses are as agreed according to the document shared with bank",priority:"critical",order:8},
+    {id:"achrt_t9",text:"Make sure that the column \"case description\" are shown in the ecm in order for data to be shown. Also found in the search criteria so that the client can use it while filtering",priority:"critical",order:9},
+    {id:"achrt_t10",text:"Check in ACH_RT_WS2, the case statues are as same as the statues configured in the workflow",priority:"critical",order:10},
+    {id:"achrt_t11",text:"Check that the workflow is working fine, and after closing the case the callback service gets called successfully",priority:"critical",order:11},
+    {id:"achrt_t12",text:"Make sure to send to the bank the request and response samples for their development from their side \"if the bank is new\".",priority:"major",order:12},
+    {id:"achrt_t13",text:"If the bank is only upgrading the CFT, make sure that email is sent to them with the old and their corresponding parameters to be taken into consideration",priority:"critical",order:13}
+  ]},
+  {id:"trade",name:"Trade Module",icon:"ti-receipt",color:"#3B6D11",bg:"#EAF3DE",order:9,tasks:[
+    {id:"trade_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"trade_t1",text:"Make sure that Bic_Loader job gets run",priority:"critical",order:1},
+    {id:"trade_t2",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:2},
+    {id:"trade_t3",text:"Make sure in the UI Trade section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:3},
+    {id:"trade_t4",text:"Make sure that the screening roles are implemented just like the BRD",priority:"critical",order:4},
+    {id:"trade_t5",text:"Make sure that table dual goods has data, and that matches occur \"on parameter in request sent: goods\"",priority:"critical",order:5},
+    {id:"trade_t6",text:"If the bank has it's internal list for goods, it needs to be loaded in order for the parameter to be screened successfully or if there is specified data to be pushed, needs to be ensured with bank and accordingly the BRD what is mentioned",priority:"major",order:6},
+    {id:"trade_t7",text:"Check if the request is saved in dbo.request details and TRDrequests",priority:"major",order:7},
+    {id:"trade_t8",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:8},
+    {id:"trade_t9",text:"Check the logs \"engine, tomcat, trade_ws1.log\" if it contains issue or not, if no case creation occurred or failure in any request while sending requests",priority:"critical",order:9},
+    {id:"trade_t10",text:"Check the case,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:10},
+    {id:"trade_t11",text:"Make sure that the callback service URL is configured correclty and the request and responses are as agreed according to the document shared with bank",priority:"critical",order:11},
+    {id:"trade_t12",text:"Make sure that the columns \"beneficiary name, remitter name,.....\" are shown in the ecm in order for data to be shown. Also found in the search criteria so that the client can use them while filtering",priority:"critical",order:12},
+    {id:"trade_t13",text:"Check in TRADE_RT_WS2, the case statues are as same as the statues configured in the workflow",priority:"critical",order:13},
+    {id:"trade_t14",text:"Check that the workflow is working fine, and after closing the case the callback service gets called successfully",priority:"critical",order:14},
+    {id:"trade_t15",text:"Make sure to send to the bank the request and response samples for their development from their side \"if the bank is new\".",priority:"major",order:15},
+    {id:"trade_t16",text:"If the bank is only upgrading the CFT, make sure that email is sent to them with the old and their corresponding parameters to be taken into consideration",priority:"critical",order:16}
+  ]},
+  {id:"onboarding",name:"Onboarding",icon:"ti-user-plus",color:"#533AB7",bg:"#EEEDFE",order:10,tasks:[
+    {id:"onboarding_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"onboarding_t1",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:1},
+    {id:"onboarding_t2",text:"Make sure in the UI Onboarding section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:2},
+    {id:"onboarding_t3",text:"Make sure that the screening roles are implemented just like the BRD",priority:"critical",order:3},
+    {id:"onboarding_t4",text:"Check if the request is saved in dbo.request details and onboarding_requests",priority:"major",order:4},
+    {id:"onboarding_t5",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:5},
+    {id:"onboarding_t6",text:"Check the logs \"engine, tomcat, onboarding_ws1.log\" if it contains issue or not, if no case creation occurred or failure in any request while sending requests",priority:"critical",order:6},
+    {id:"onboarding_t7",text:"Check the case,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:7},
+    {id:"onboarding_t8",text:"If the client has KYC and CRP then will be no need for onboarding_ws2 callback service \"It is depending on the client\"",priority:"critical",order:8},
+    {id:"onboarding_t9",text:"Make sure that the callback service URL is configured correclty and the request and responses are as agreed according to the document shared with bank",priority:"critical",order:9},
+    {id:"onboarding_t10",text:"Make sure that the column \"case description\" are shown in the ecm in order for data to be shown. Also found in the search criteria so that the client can use them while filtering",priority:"critical",order:10},
+    {id:"onboarding_t11",text:"Check in Onboarding_WS2, the case statues are as same as the statues configured in the workflow",priority:"critical",order:11},
+    {id:"onboarding_t12",text:"Check that the workflow is working fine, and after closing the case the callback service gets called successfully",priority:"critical",order:12},
+    {id:"onboarding_t13",text:"Make sure to send to the bank the request and response samples for their development from their side \"if the bank is new\".",priority:"major",order:13},
+    {id:"onboarding_t14",text:"If the bank is only upgrading the CFT, make sure that email is sent to them with the old and their corresponding parameters to be taken into consideration",priority:"critical",order:14}
+  ]},
+  {id:"rtp",name:"RTP Module",icon:"ti-device-mobile",color:"#0F6E56",bg:"#E1F5EE",order:11,tasks:[
+    {id:"rtp_t0",text:"Ensure that engine is implemented correctly \"DB config, log file path, active mq queue name, hostname and port\" and working fine",priority:"critical",order:0},
+    {id:"rtp_t1",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:1},
+    {id:"rtp_t2",text:"Make sure that Bic_Loader job gets run",priority:"critical",order:2},
+    {id:"rtp_t3",text:"Make sure in the UI RTP section, the matching level is set HIGH \"default\" and that the lists are found in the list management as found in table SNCT_LOOKUP \"watchlist_name column\"",priority:"critical",order:3},
+    {id:"rtp_t4",text:"Make sure that the screening roles are implemented just like the BRD",priority:"critical",order:4},
+    {id:"rtp_t5",text:"Check if the request is saved in dbo.request details and rtp_requests",priority:"major",order:5},
+    {id:"rtp_t6",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:6},
+    {id:"rtp_t7",text:"Check the logs \"engine, tomcat, rtp_ws1.log\" if it contains issue or not, if no case creation occurred or failure in any request while sending requests",priority:"critical",order:7},
+    {id:"rtp_t8",text:"Check the case,Transaction body and if the incidents are highlighted or not , Incidents and their matches, check remarks, further info, aliases, connection relationship \"still not available\", sources, key words, key data ,Case attachment ,Comments ,Case history.",priority:"major",order:8},
+    {id:"rtp_t9",text:"Make sure that the callback service URL is configured correclty and the request and responses are as agreed according to the document shared with bank",priority:"critical",order:9},
+    {id:"rtp_t10",text:"Make sure that the columns \"beneficiary name, remitter name,...\" are shown in the ecm in order for data to be shown. Also found in the search criteria so that the client can use them while filtering",priority:"critical",order:10},
+    {id:"rtp_t11",text:"Check in RTP_WS2, the case statues are as same as the statues configured in the workflow",priority:"critical",order:11},
+    {id:"rtp_t12",text:"Check that the workflow is working fine, and after closing the case the callback service gets called successfully",priority:"critical",order:12},
+    {id:"rtp_t13",text:"Make sure to send to the bank the request and response samples for their development from their side \"if the bank is new\".",priority:"major",order:13},
+    {id:"rtp_t14",text:"If the bank is only upgrading the CFT, make sure that email is sent to them with the old and their corresponding parameters to be taken into consideration",priority:"critical",order:14}
+  ]},
+  {id:"intlist",name:"Internal List",icon:"ti-list",color:"#185FA5",bg:"#E6F1FB",order:12,tasks:[
+    {id:"intlist_t0",text:"Ensure that implemention of packages done correctly \"configurations in Sanction_Services, CFT Web UI\"",priority:"critical",order:0},
+    {id:"intlist_t1",text:"Ensure that Sanction_Services, and CFT Web UI are working fine",priority:"critical",order:1},
+    {id:"intlist_t2",text:"Ensure that CFT UI is accessable and the internal list module appears on sidebar",priority:"critical",order:2},
+    {id:"intlist_t3",text:"Ensure that the international lists are excluded from the internal list, by adding them in the table DGCFTWL.DGCFTCORE.INTERNAL_EXCLUDED_LISTS",priority:"critical",order:3},
+    {id:"intlist_t4",text:"Ensure that those tables are found in database DGCFTWL: INTERNAL_LIST_REQUEST and FSC_INTERNAL_LIST_DIM, so that request when adding, updating, deactivating records gets stored in those tables",priority:"critical",order:4},
+    {id:"intlist_t5",text:"Check that the API in the workflow is correct, so that when accepting case whether \"add, update, deactivate\" got listened correctly",priority:"critical",order:5},
+    {id:"intlist_t6",text:"Check that the WLUJ batch file is configured correctly so that when accepting case whether \"add, update, deactivate\" got listened correctly, in the Sanction_Services package",priority:"critical",order:6},
+    {id:"intlist_t7",text:"Check that in Sanction_Services \"SELECT_SWIFTRUES_DATA, opeationTypeQuery, newInternalListKeyQuery, oldInternalListKeyQuery, fileRequestKeyQuery\" have the correct database name and that the udf def are added in the tables mentioned in the query written",priority:"major",order:7},
+    {id:"intlist_t8",text:"Ensure that the file paths for Internal list bulk output file and Internal list bulk script file paths are correct and found in the WEB/FND server",priority:"critical",order:8},
+    {id:"intlist_t9",text:"Ensure that you can download the template files for IND/ORG, CNTRY, BICS to use them while uploading file for each",priority:"critical",order:9},
+    {id:"intlist_t10",text:"Check if all the entered data \"after accepting case\" are shown in the record \"after searching for it\"",priority:"major",order:10},
+    {id:"intlist_t11",text:"Check that the update of record got updated after accepting case",priority:"major",order:11},
+    {id:"intlist_t12",text:"Check that the deactivate of record got deleted after accepting case",priority:"major",order:12},
+    {id:"intlist_t13",text:"Check the case,Case attachment ,Comments ,Case history",priority:"major",order:13}
+  ]},
+  {id:"whitelist",name:"Whitelist",icon:"ti-shield-check",color:"#3B6D11",bg:"#EAF3DE",order:13,tasks:[
+    {id:"whitelist_t0",text:"Ensure that Sanction_Services, and CFT Web UI are working fine",priority:"critical",order:0},
+    {id:"whitelist_t1",text:"Ensure that implemention of packages done correctly \"configurations in Sanction_Services, CFT Web UI\"",priority:"critical",order:1},
+    {id:"whitelist_t2",text:"Ensure that CFT UI is accessable and the module appears on sidebar",priority:"critical",order:2},
+    {id:"whitelist_t3",text:"Ensure those 3 tables are found in DGCFT DB: WHITE_LIST WHITE_LIST_MATCHES WHITELIST_HISTORY",priority:"critical",order:3},
+    {id:"whitelist_t4",text:"Ensure those 2 stored procedures are found in DGCFT stored prosedure and connected with correct DGECM DB name: CREATEWHITELIST INSERTINTOWL",priority:"critical",order:4},
+    {id:"whitelist_t5",text:"Check that the API in the workflow is correct, so that when accepting case the name gets whitelisted",priority:"critical",order:5},
+    {id:"whitelist_t6",text:"To add record into whitelist table, Open Case, go to incident, press rigth click and create whitelist. Case will be created",priority:"minor",order:6},
+    {id:"whitelist_t7",text:"Check if the workflow of white works fine or not",priority:"critical",order:7},
+    {id:"whitelist_t8",text:"Check if the correct data got inserted into the three tables in point 4",priority:"major",order:8},
+    {id:"whitelist_t9",text:"Check if the data appeared in the case in UI is the similar of that found in case_live table",priority:"major",order:9},
+    {id:"whitelist_t10",text:"Please check if the associated case in the whitelist case refers to the original case from which the whitelist was created, and confirm if it is accessible",priority:"major",order:10},
+    {id:"whitelist_t11",text:"Please go to the original case and check if the associated case shows the whitelist case, and confirm whether it is accessible",priority:"major",order:11},
+    {id:"whitelist_t12",text:"Check the case,Case attachment ,Comments ,Case history",priority:"major",order:12}
+  ]},
+  {id:"slagoaml",name:"SLA & GoAML",icon:"ti-clock",color:"#993556",bg:"#FBEAF0",order:14,tasks:[
+    {id:"slagoaml_t0",text:"1. Add listener to user task :",priority:"minor",order:0},
+    {id:"slagoaml_t1",text:"- In user task click on \u2018Execution Listeners\u2019",priority:"minor",order:1},
+    {id:"slagoaml_t2",text:"- Press \u2018+\u02bc button to add listener, make event \u2018start\u2019 and put in delegate expression \u2018${escalationDelegate}\u2019",priority:"minor",order:2},
+    {id:"slagoaml_t3",text:"- Then add parameters that need in escalation by click \u2018+\u02bc button like: 1- Level No.: contain number of levels. 2- TimerNamePrefix: contain the first part of timer name like \u2018DtMaker\u2018 3- Names of timers: - DtMaker1 with the time that need to fire timer after it, like after one minutes \u201900:01\u02bc - DtMaker2 with the time that need to fire timer after it, like after two minutes \u201900:02\u02bc Note: Names of timers change depend on the value of TimeNamePrefix",priority:"minor",order:3},
+    {id:"slagoaml_t4",text:"- Type: to choose type of timer HM: hours and minutes like (02:30 \u2192 2 hours and 30 minutes) ND: next day like (14:20 \u2192 in the next day at 2:20 PM) Note: if you didn\u2019t add type the default is HM.",priority:"minor",order:4},
+    {id:"slagoaml_t5",text:"- Accumulate Flag: to make escalation accumulate when return to the previous step or create new timer and the value of it is Boolean: True \u2192 mean accumulate work and will continue with timer. False \u2192 mean create new timer.",priority:"minor",order:5},
+    {id:"slagoaml_t6",text:"Next Day: Number of days that want to skip. Note: its 24 hours, If today is 21/10/2024. Timer will fire at 23/10/2024",priority:"minor",order:6},
+    {id:"slagoaml_t7",text:"- Press \u2018+\u02bc button to add listener, make event \u2018End\u2019 and put in delegate expression \u2018${escalationEndDelegate}\u02bc",priority:"minor",order:7},
+    {id:"slagoaml_t8",text:"- Click \u2018Save\u2019",priority:"minor",order:8},
+    {id:"slagoaml_t9",text:"2. Add timers to user task:",priority:"minor",order:9},
+    {id:"slagoaml_t10",text:"- Choose from Boundary Events \u2192 Boundary timer event.",priority:"minor",order:10},
+    {id:"slagoaml_t11",text:"- Then add it to user task.",priority:"minor",order:11},
+    {id:"slagoaml_t12",text:"- Click on timer and add Time date in ISO-8601 with name of timer that created into escalationDelegate listener and unselect cancel activity.",priority:"minor",order:12},
+    {id:"slagoaml_t13",text:"3. Add Http Task to happen when timer fire.",priority:"minor",order:13},
+    {id:"slagoaml_t14",text:"- Change name of http like \u2018Email\u2019.",priority:"minor",order:14},
+    {id:"slagoaml_t15",text:"- Check Asynchronous.",priority:"minor",order:15},
+    {id:"slagoaml_t16",text:"- Choose request method \u2018POST\u2019",priority:"minor",order:16},
+    {id:"slagoaml_t17",text:"- Add Request URL with suitable URL and template name. ${ECM_SERVER_URL}api/sendMail? TemplateType=DtMaker1",priority:"minor",order:17},
+    {id:"slagoaml_t18",text:"- Add request body if you need. { \"caseRk\":${caseRk}, \"caseId\": \"${caseId}\" }",priority:"minor",order:18},
+    {id:"slagoaml_t19",text:"- Add Fail status codes and Handle status codes like: 404,500,403,405,406,408.",priority:"minor",order:19},
+    {id:"slagoaml_t20",text:"- Add request headers like Content-Type: application/json.",priority:"minor",order:20},
+    {id:"slagoaml_t21",text:"- Uncheck the Execute parallel in same transaction.",priority:"major",order:21},
+    {id:"slagoaml_t22",text:"4. In ECM:",priority:"minor",order:22},
+    {id:"slagoaml_t23",text:"- From ECM Settings choose ECM Properties and add ECM_SERVER_URL with ECM URL",priority:"critical",order:23},
+    {id:"slagoaml_t24",text:"- From ECM Notification choose EMAIL_TEMPLATE and ADD_NEW_EMAIL_TEMPLATE Note: Body is mandatory.",priority:"critical",order:24},
+    {id:"slagoaml_t25",text:"Steps For GoAML Integration",priority:"minor",order:25},
+    {id:"slagoaml_t26",text:"1. Choose from Gateways \u2192 Inclusive gateway.",priority:"minor",order:26},
+    {id:"slagoaml_t27",text:"2. Add it to the workflow with flow condition \u2018${taskOutcome=='CFT-TH'}\u2019.",priority:"critical",order:27},
+    {id:"slagoaml_t28",text:"3. Add Http Task:",priority:"minor",order:28},
+    {id:"slagoaml_t29",text:"- Change name of http like \u2018Email\u2019.",priority:"minor",order:29},
+    {id:"slagoaml_t30",text:"- Check Asynchronous.",priority:"minor",order:30},
+    {id:"slagoaml_t31",text:"- Choose request method \u2018POST\u2019",priority:"minor",order:31},
+    {id:"slagoaml_t32",text:"- Add Request URL with suitable URL and template name. ${ECM_SERVER_URL}api/case/send-to-queue",priority:"minor",order:32},
+    {id:"slagoaml_t33",text:"- Add request body if you need. { \"queueName\": \"goaml.CFTMyClient\", \"caseRk\": ${caseRk}, \"messageHeader\": { \"caseRk\": ${caseRk}, \"reportCode\": \"SARTF\", \"X-TenantCode\": \"EG\", \"reason\": \"test\", \"createdBy\": \"${createdBy}\" } } Note: change the reportCode according to report type (SARTF, STR and DTET).",priority:"minor",order:33},
+    {id:"slagoaml_t34",text:"- Add Fail status codes and Handle status codes like: 404,500,403,405,406,408.",priority:"minor",order:34},
+    {id:"slagoaml_t35",text:"- Add request headers like Content-Type: application/json.",priority:"minor",order:35},
+    {id:"slagoaml_t36",text:"- Uncheck the Execute parallel in same transaction.",priority:"major",order:36},
+    {id:"slagoaml_t37",text:"- Add Response variable name like \u2018responseQueueMessage\u2019.",priority:"minor",order:37},
+    {id:"slagoaml_t38",text:"- Add flow condition \u2018${CCR_REPORT_TYPE=='SARTF'}\u2019 and change CCR_REPORT_TYPE according to report type (SARTF, STR and DTET).",priority:"minor",order:38},
+    {id:"slagoaml_t39",text:"4. In ECM:",priority:"minor",order:39},
+    {id:"slagoaml_t40",text:"- From ECM Settings choose ECM Lookups, choose RT_REPORT_TYPE then add the report types. Note: This step is important because it shows the report types inside the dropdown in the case where the user picks the report type. Don\u2019t forget it!",priority:"critical",order:40},
+    {id:"slagoaml_t41",text:"- The template name in Case Config will be differ in the 3 modules DELTA, ONBOARDING and CUSTBULK. (case-swf-delta-ccr.html, case-swf-onboarding-ccr.html and case-cust-bulk-ccr.html).",priority:"minor",order:41},
+    {id:"slagoaml_t42",text:"5. Create a view in DGAML_NEW.target called [VW_CASE_RK_ACTIVITY_LIST]",priority:"minor",order:42}
+  ]}
+];
+
+// ── CONFIG ──────────────────────────────────────────────────────
+var THEME_KEY='cft_t5',USERS_KEY='cft_u5',CUR_KEY='cft_c5';
+var ACOLORS=['#185FA5','#3B6D11','#854F0B','#533AB7','#993556','#0F6E56','#A32D2D'];
+var MCOLS=[{c:'#185FA5',bg:'#E6F1FB'},{c:'#3B6D11',bg:'#EAF3DE'},{c:'#854F0B',bg:'#FAEEDA'},{c:'#533AB7',bg:'#EEEDFE'},{c:'#993556',bg:'#FBEAF0'},{c:'#0F6E56',bg:'#E1F5EE'},{c:'#A32D2D',bg:'#FCEBEB'}];
+var MICONS=['ti-server','ti-world','ti-table','ti-refresh','ti-user-shield','ti-arrows-exchange','ti-arrows-exchange-2','ti-bolt','ti-receipt','ti-user-plus','ti-device-mobile','ti-list','ti-shield-check','ti-clock','ti-settings','ti-database'];
+var PRIO={critical:{dot:'#E24B4A',bbg:'#FCEBEB',bc:'#A32D2D',sbg:'#FCEBEB',sc:'#A32D2D',icon:'ti-alert-triangle',label:'Critical'},major:{dot:'#EF9F27',bbg:'#FAEEDA',bc:'#854F0B',sbg:'#FAEEDA',sc:'#854F0B',icon:'ti-adjustments',label:'Major'},minor:{dot:'#378ADD',bbg:'#E6F1FB',bc:'#0C447C',sbg:'#E6F1FB',sc:'#0C447C',icon:'ti-info-circle',label:'Minor'}};
+
+// ── FIREBASE ────────────────────────────────────────────────────
+var FIREBASE_CONFIG={apiKey:'AIzaSyAVg-A5Bi_cSWwpIy8xf-gVscoPvO2bSDg',authDomain:'cft-84bcb.firebaseapp.com',projectId:'cft-84bcb',storageBucket:'cft-84bcb.firebasestorage.app',messagingSenderId:'634986260931',appId:'1:634986260931:web:f261d58b195d1f6e3bb576',measurementId:'G-KD70HSMN6T'};
+var firebaseApp=null,db=null,auth=null,firebaseReady=false;
+var usersCache=[];
+const API_URL ="https://tiny-voice-2437.testpro1275.workers.dev/";
+
+async function initFirebase(){
+  if(firebaseReady&&db)return true;
+  try{firebaseApp=initializeApp(FIREBASE_CONFIG);auth = getAuth(firebaseApp);db=getFirestore(firebaseApp);firebaseReady=true;return true;}
+  catch(e){console.error('Firebase init failed',e);toast('Firebase connection failed','error');return false;}
+}
+
+async function removeChecksForUsers(batch, checkIds, moduleId, deleteAllChecks){
+  var checksSnap=await getDocs(collection(db,'checks'));
+  var targetIds=Array.isArray(checkIds)?checkIds.filter(Boolean):[];
+  var hasPendingOps=false;
+
+  checksSnap.forEach(function(checkDoc){
+    var data=checkDoc.data()||{};
+    var taskId=data.taskId || '';
+    var shouldDelete = deleteAllChecks || targetIds.indexOf(taskId)!==-1 || targetIds.indexOf(checkDoc.id)!==-1 || (moduleId && data.moduleId===moduleId);
+    if(shouldDelete){
+      batch.delete(checkDoc.ref);
+      hasPendingOps=true;
+    }
+  });
+
+  return hasPendingOps;
+}
+
+async function deleteTaskFromFirebase(tid){
+  if(!(await initFirebase()))return;
+  try{
+    var batch=writeBatch(db);
+    batch.delete(doc(db,'tasks',tid));
+    await removeChecksForUsers(batch,[tid]);
+    await batch.commit();
+  }
+  catch(e){console.error('Failed to delete task',e);throw e;}
+}
+
+async function deleteModuleFromFirebase(mid){
+  if(!(await initFirebase()))return;
+  try{
+    var batch=writeBatch(db);
+    batch.delete(doc(db,'modules',mid));
+    var tasksSnap=await getDocs(collection(db,'tasks'));
+    var moduleTaskIds=[];
+    tasksSnap.forEach(function(taskDoc){
+      var d=taskDoc.data()||{};
+      var taskModuleId=d.moduleId||taskDoc.id.replace(/_t\d+$/,'');
+      if(taskModuleId===mid){
+        batch.delete(doc(db,'tasks',taskDoc.id));
+        moduleTaskIds.push(taskDoc.id);
+      }
+    });
+    await removeChecksForUsers(batch,moduleTaskIds,mid);
+    await batch.commit();
+  }
+  catch(e){console.error('Failed to delete module',e);throw e;}
+}
+
+async function saveModsToFirebase(moduleId) {
+    if (!(await initFirebase())) {
+        return false;
+    }
+
+    try {
+        var targetModule = null;
+        if (moduleId) {
+            targetModule = mods.find(function (m) { return m.id === moduleId; });
+            if (!targetModule) {
+                return false;
+            }
+        }
+
+        if (!targetModule) {
+            return false;
+        }
+
+        const batch = writeBatch(db);
+        var hasPendingOps = false;
+
+        var moduleRef = doc(db, 'modules', targetModule.id);
+        var modulePayload = {
+            id: targetModule.id,
+            name: targetModule.name,
+            icon: targetModule.icon,
+            color: targetModule.color,
+            bg: targetModule.bg,
+            order: targetModule.order
+        };
+        batch.set(moduleRef, modulePayload);
+        hasPendingOps = true;
+
+        var tasks = targetModule.tasks || [];
+        for (var i = 0; i < tasks.length; i++) {
+            var t = tasks[i];
+            var taskRef = doc(db, 'tasks', t.id);
+            var taskPayload = {
+                id: t.id,
+                moduleId: targetModule.id,
+                text: t.text,
+                priority: t.priority,
+                order: t.order
+            };
+            batch.set(taskRef, taskPayload);
+            hasPendingOps = true;
+        }
+
+        if (hasPendingOps) {
+            await batch.commit();
+        }
+
+        return true;
+
+    } catch (e) {
+        console.error('Failed to save modules', e);
+        throw e;
+    }
+}
+
+async function updateModsToFirebase(moduleId, taskId) {
+    if (!(await initFirebase())) {
+        return false;
+    }
+
+    try {
+        const batch = writeBatch(db);
+        let hasPendingOps = false;
+
+        function addModulePayload(m) {
+            return {
+                id: m.id,
+                name: m.name,
+                icon: m.icon,
+                color: m.color,
+                bg: m.bg,
+                order: m.order
+            };
+        }
+
+        function addTaskPayload(m, t) {
+            return {
+                id: t.id,
+                moduleId: m.id,
+                text: t.text,
+                priority: t.priority,
+                order: t.order
+            };
+        }
+
+        async function upsertModule(m) {
+            var moduleRef = doc(db, 'modules', m.id);
+            var moduleSnap = await getDoc(moduleRef);
+            var payload = addModulePayload(m);
+            if (!moduleSnap.exists() || JSON.stringify(moduleSnap.data()) !== JSON.stringify(payload)) {
+                batch.set(moduleRef, payload);
+                hasPendingOps = true;
+            }
+        }
+
+        async function upsertTask(m, t) {
+            var taskRef = doc(db, 'tasks', t.id);
+            var taskSnap = await getDoc(taskRef);
+            var payload = addTaskPayload(m, t);
+            if (!taskSnap.exists() || JSON.stringify(taskSnap.data()) !== JSON.stringify(payload)) {
+                batch.set(taskRef, payload);
+                hasPendingOps = true;
+            }
+        }
+
+        if (moduleId) {
+            var targetModule = mods.find(function (m) { return m.id === moduleId; });
+            if (!targetModule) {
+                return false;
+            }
+
+            await upsertModule(targetModule);
+
+            var tasks = targetModule.tasks || [];
+            if (taskId) {
+                var targetTask = tasks.find(function (t) { return t.id === taskId; });
+                if (targetTask) {
+                    await upsertTask(targetModule, targetTask);
+                }
+            } else {
+                for (var i = 0; i < tasks.length; i++) {
+                    await upsertTask(targetModule, tasks[i]);
+                }
+            }
+        } else {
+            for (var i = 0; i < mods.length; i++) {
+                var m = mods[i];
+                await upsertModule(m);
+                var tasks = m.tasks || [];
+                for (var j = 0; j < tasks.length; j++) {
+                    await upsertTask(m, tasks[j]);
+                }
+            }
+        }
+
+        if (hasPendingOps) {
+            await batch.commit();
+        }
+
+        return true;
+
+    } catch (e) {
+        console.error('Failed to save modules', e);
+        throw e;
+    }
+}
+
+async function replaceModsInFirebase(newMods) {
+    if (!(await initFirebase())){return false;}
+
+    try {
+        const batch = writeBatch(db);
+
+        const [modulesSnap, tasksSnap] =
+            await Promise.all([
+                getDocs(collection(db, 'modules')),
+                getDocs(collection(db, 'tasks'))
+            ]);
+
+        // Delete old modules
+        modulesSnap.forEach(function (modDoc){batch.delete(modDoc.ref);});
+        // Delete old tasks
+        tasksSnap.forEach(function (taskDoc){batch.delete(taskDoc.ref);});
+        // Delete old checks from every user
+        await removeChecksForUsers(batch, [], null, true);
+        
+        await batch.commit();
+
+        // Create new batch
+        const batch2 = writeBatch(db);
+        (newMods || []).forEach(function (m) {
+          batch2.set(doc(db, 'modules', m.id),{ id: m.id, name: m.name, icon: m.icon, color: m.color, bg: m.bg, order: m.order});
+          (m.tasks || []).forEach(function (t){batch2.set(doc(db, 'tasks', t.id),{id: t.id, moduleId: m.id, text: t.text, priority: t.priority, order: t.order});});
+        });
+        await batch2.commit();
+        return true;
+
+    } catch (e) {
+        console.error('Failed to replace modules', e);
+        throw e;
+    }
+}
+
+async function saveUsersToFirebase(usersData, previousUsers){
+  if(!(await initFirebase()))return;
+  try{
+    var batch=writeBatch(db);
+    var list=Array.isArray(usersData)?usersData:gUsers();
+    var prevIds=Array.isArray(previousUsers)?previousUsers.map(function(u){return u.id;}).filter(Boolean):[];
+    var currentIds=list.map(function(u){return u.id;});
+    prevIds.forEach(function(id){if(currentIds.indexOf(id)===-1){batch.delete(doc(db,'users',id));}});
+    list.forEach(function(u){batch.set(doc(db,'users',u.id),{id:u.id,name:u.name,email:u.email,initials:u.initials,color:u.color,role:u.role});});
+    await batch.commit();
+  }
+  catch(e){console.error('Failed to save users',e);}
+}
+
+async function deleteUserFromFirebase(uid2){
+  if(!(await initFirebase()))return;
+  try{
+    var batch=writeBatch(db);
+    var checksSnap=await getDocs(collection(db,'checks'));
+    checksSnap.forEach(function(checkDoc){
+      var data=checkDoc.data()||{};
+      if(data.userId===uid2){batch.delete(checkDoc.ref);}
+    });
+    var legacyChecksSnap=await getDocs(collection(db,'users',uid2,'checks'));
+    legacyChecksSnap.forEach(function(checkDoc){batch.delete(doc(db,'users',uid2,'checks',checkDoc.id));});
+    batch.delete(doc(db,'users',uid2));
+    await batch.commit();
+  }
+  catch(e){console.error('Failed to delete user',e);}
+}
+
+async function saveChecksToFirebase(){
+  if(!(await initFirebase()))return;
+  if(!user)return;
+  try{
+    var batch=writeBatch(db);
+    var currentKeys={};
+    Object.keys(chks).forEach(function(k){currentKeys[k]=true;});
+
+    var sharedChecksSnap=await getDocs(collection(db,'checks'));
+    sharedChecksSnap.forEach(function(cDoc){
+      var cData=cDoc.data()||{};
+      if(cData.userId===user.id){
+        if(!currentKeys[cData.taskId]){batch.delete(cDoc.ref);}
+      }
+    });
+
+    var legacyChecksSnap=await getDocs(collection(db,'users',user.id,'checks'));
+    legacyChecksSnap.forEach(function(cDoc){batch.delete(doc(db,'users',user.id,'checks',cDoc.id));});
+
+    Object.keys(chks).forEach(function(k){
+      var moduleId='';
+      for(var i=0;i<mods.length;i++){
+        var m=mods[i];
+        if((m.tasks||[]).some(function(t){return t.id===k;})){
+          moduleId=m.id;
+          break;
+        }
+      }
+      var checkId=user.id+'_'+k;
+      batch.set(doc(db,'checks',checkId),{id:checkId,userId:user.id,taskId:k,moduleId:moduleId,checked:!!chks[k],updatedAt:new Date().toISOString()});
+    });
+    await batch.commit();
+  }
+  catch(e){console.error('Failed to save checks',e);throw e;}
+}
+
+async function loadFromFirebase() {
+    if (!(await initFirebase())) {return false;}
+
+    try {
+        const [modulesSnap, tasksSnap, usersSnap, checksSnap] =
+            await Promise.all([
+                getDocs(collection(db, 'modules')),
+                getDocs(collection(db, 'tasks')),
+                getDocs(collection(db, 'users')),
+                user?getDocs(collection(db, 'checks')):Promise.resolve(null)
+            ]);
+
+        // Modules
+        const fbMods = modulesSnap.docs.map(function (modDoc) {
+            const modData = modDoc.data();
+
+            return {
+                id: modData.id || modDoc.id,
+                name: modData.name || modDoc.id,
+                icon: modData.icon || 'ti-settings',
+                color: modData.color || '#185FA5',
+                bg: modData.bg || '#E6F1FB',
+                order: modData.order || 0,
+                tasks: []
+            };
+        });
+
+        // Tasks
+        const groupedTasks = {};
+        tasksSnap.docs.forEach(function (taskDoc) {
+            const d = taskDoc.data() || {};
+            const taskId = d.id || taskDoc.id;
+            const moduleId = d.moduleId;
+
+            if (!moduleId) {return;}
+            if (!groupedTasks[moduleId]) {groupedTasks[moduleId] = [];}
+
+            groupedTasks[moduleId].push({id: taskId,text: d.text,priority: d.priority,order: d.order || 0});
+        });
+
+        fbMods.forEach(function (mod) {
+            mod.tasks = groupedTasks[mod.id] || [];
+            mod.tasks.sort(function (a, b) {return a.order - b.order;});
+        });
+
+        if (fbMods.length) {mods = fbMods;}
+
+        // Users
+        if (!usersSnap.empty) {
+            usersCache = usersSnap.docs.map(function (uDoc){return {id: uDoc.id, ...uDoc.data()};});
+        }
+
+        // Checks
+        if (checksSnap) {
+            const fbChecks = {};
+            checksSnap.forEach(function (cDoc) {
+                const cData = cDoc.data() || {};
+                if (cData.userId !== user.id) {return;}
+                const taskId = cData.taskId || cDoc.id;
+                fbChecks[taskId] = !!cData.checked;
+            });
+            chks = fbChecks;
+        }
+
+        return true;
+
+    } catch (e) {
+        console.error('Firebase load failed', e);
+        return false;
+    }
+}
+
+async function loadUserChecksFromFirebase(uid2){
+  if(!(await initFirebase()))return;
+  try{
+    var checksSnap=await getDocs(collection(db,'checks'));
+    var fbChecks={};
+    checksSnap.forEach(function(cDoc){
+      var cData=cDoc.data()||{};
+      if(cData.userId===uid2){
+        var taskId = cData.taskId || cDoc.id;
+        fbChecks[taskId]=!!cData.checked;
+      }
+    });
+    if(Object.keys(fbChecks).length){chks=fbChecks;}
+    else{chks={};}
+  }
+  catch(e){console.error('Failed to load checks',e);}
+}
+
+async function saveCurrentUser(userData){
+  if(!(await initFirebase()))return;
+  try{
+    if(userData&&userData.id){localStorage.setItem(CUR_KEY,JSON.stringify(userData))}
+    else{localStorage.removeItem(CUR_KEY)}
+  }
+  catch(e){console.error('Failed to save current user',e);}
+}
+
+async function loadCurrentUser(){
+  if(!(await initFirebase()))return null;
+  try{
+    const storedUser = localStorage.getItem(CUR_KEY);
+    if(!storedUser){return null;} 
+    return JSON.parse(storedUser);
+  }
+  catch(e){console.error('Failed to load current user',e);}
+}
+
+async function loadUsersFromFirebase(){
+  if(!(await initFirebase()))return false;
+  try{
+    var usersSnap=await getDocs(collection(db,'users'));
+    if(!usersSnap.empty){var fbUsers=usersSnap.docs.map(function(uDoc){return uDoc.data();});if(fbUsers.length){usersCache=fbUsers;return true;}}
+    return false;
+  }
+  catch(e){console.error('Failed to load users',e);return false;}
+}
+
+async function login(email, password) {
+
+  try {
+
+    const userCredential =
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    return {
+      success: true,
+      user: userCredential.user
+    };
+
+  } catch (e) {
+    return {
+      success: false,
+      error: e.code,
+      message: e.message
+    };
+  }
+
+}
+
+async function signUp(email, password) {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    return {
+      success: true,
+      user: userCredential.user
+    };
+
+  } catch (e) {
+    return {
+      success: false,
+      error: e.code,
+      message: e.message
+    };
+  }
+}
+
+function setButtonLoading(button,label,isLoading){
+  if(!button)return;
+  if(isLoading){
+    if(!button.dataset.originalHtml){button.dataset.originalHtml=button.innerHTML;}
+    if(!button.dataset.originalLabel){button.dataset.originalLabel=button.textContent.trim();}
+    button.disabled=true;
+    button.classList.add('is-loading');
+    button.innerHTML='<span class="btn-loader"></span><span>'+esc(label)+'</span>';
+  }else{
+    button.disabled=false;
+    button.classList.remove('is-loading');
+    if(button.dataset.originalHtml){button.innerHTML=button.dataset.originalHtml;}
+    else if(button.dataset.originalLabel){button.textContent=button.dataset.originalLabel;}
+  }
+}
+
+function setModuleActionLoading(moduleId,action,isLoading){
+  var selector=action==='upload'?'[data-mupload="'+moduleId+'"]':'[data-mfiles="'+moduleId+'"]';
+  var button=document.querySelector(selector);
+  setButtonLoading(button, action==='upload'?'...':'...', isLoading);
+}
+
+function ensureFileInput(){
+  var input=document.getElementById('moduleFileInput');
+  if(!input){
+    input=document.createElement('input');
+    input.id='moduleFileInput';
+    input.type='file';
+    input.style.display='none';
+    input.addEventListener('click',function(e){e.stopPropagation();});
+    input.addEventListener('change',function(e){e.stopPropagation();if(this.files&&this.files[0]){uploadFile(this.dataset.moduleId||'');}});
+    document.body.appendChild(input);
+  }
+  return input;
+}
+
+function openUploadPicker(moduleId){
+  var input=ensureFileInput();
+  input.dataset.moduleId=moduleId||'';
+  input.click();
+}
+
+async function uploadFile(moduleId) {
+  var input=ensureFileInput();
+  var file=input.files&&input.files[0];
+
+  if(!file){
+    openUploadPicker(moduleId);
+    return;
+  }
+
+  setModuleActionLoading(moduleId,'upload',true);
+  try{
+    var base64Data=await new Promise(function(resolve,reject){
+      var reader=new FileReader();
+      reader.onload=function(){resolve((reader.result||'').split(',')[1]||'');};
+      reader.onerror=function(){reject(new Error('File read failed'));};
+      reader.readAsDataURL(file);
+    });
+    var response=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action: "upload",moduleId:moduleId||'',fileName:file.name,mimeType:file.type||'application/octet-stream',fileData:base64Data})});
+    var result={};
+    try{result=await response.json();}catch(e){result={success:false,error:'Invalid response'};}
+    if(result.success){
+      toast('File uploaded successfully');
+    }else{
+      toast(result.error||'Upload failed','error');
+    }
+  }catch(e){
+    toast('Upload failed','error');
+  }finally{
+    setModuleActionLoading(moduleId,'upload',false);
+    closeModuleMenu(moduleId);
+    input.value='';
+  }
+}
+
+async function loadFiles(moduleId) {
+  try{
+    var response=await fetch(API_URL,{headers:{Accept:'application/json'}});
+    if(!response.ok){throw new Error('Unable to load files');}
+    var data=await response.json();
+    var files=Array.isArray(data&&data.files)?data.files:[];
+    var moduleKey=String(moduleId||'').toLowerCase();
+    return {files:files};
+  }catch(e){
+    toast('Unable to load files','error');
+    return {files:[]};
+  }
+}
+
+function closeFileListModal(){
+  var modal=document.getElementById('moduleFileListModal');
+  if(modal)modal.remove();
+}
+
+function getFileNameParts(fileName){
+  var value=String(fileName||'');
+  var lastDot=value.lastIndexOf('.');
+  if(lastDot<=0||lastDot===value.length-1){return {name:value,ext:''};}
+  return {name:value.slice(0,lastDot),ext:value.slice(lastDot)};
+}
+
+function openRenameFileModal(modal,moduleId,moduleName,fileEntry){
+  var parts=getFileNameParts(fileEntry.fileName||fileEntry.name||'');
+  showModal('<div class="modal-hdr"><span class="modal-title">Rename File</span><button id="renameFileClose" class="modal-close"><i class="ti ti-x"></i></button></div>'
+    +'<div class="modal-body" style="display:flex;flex-direction:column;gap:12px"><label class="field-label">File Name</label><input class="field-input" id="renameFileInput" value="'+esc(parts.name||'')+'" placeholder="Enter file name..."/></div>'
+    +'<div class="modal-footer"><button id="renameFileCancel" class="btn-secondary">Cancel</button><button id="renameFileSave" class="btn-primary">Save</button></div>',420);
+  var input=el('renameFileInput');
+  if(input){input.focus();input.select();input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var saveBtn=el('renameFileSave');if(saveBtn)saveBtn.click();}});}
+  el('renameFileClose').addEventListener('click',closeModal);
+  el('renameFileCancel').addEventListener('click',closeModal);
+  el('renameFileSave').addEventListener('click',function(){
+    var newBaseName=(input?input.value:'').trim();
+    if(!newBaseName){toast('File name is required','error');return;}
+    if(fileEntry){
+      fileEntry.fileName=newBaseName+parts.ext;
+      closeModal();
+      fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'rename',fileId:fileEntry.id||fileEntry.id,newName:fileEntry.fileName})}).then(function(response){if(!response.ok){throw new Error('Rename failed');}return response.json();}).then(function(result){if(!result.success){toast(result.error||'Rename failed','error');}else{toast('File Renamed successfully');}}).catch(function(e){console.error('Rename failed',e);toast('Rename failed','error');});
+      openFileListModal(moduleId,moduleName,modal._fileEntries);
+    }
+  });
+}
+
+function openMoveFileModal(modal,moduleId,moduleName,fileEntry){
+  var moduleOptions=mods.map(function(m){return '<button class="sb-btn" data-move-target="'+esc(m.id)+'" style="justify-content:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:'+esc(m.color)+'"></div><span>'+esc(m.name)+'</span></div></button>';}).join('');
+  showModal('<div class="modal-hdr"><span class="modal-title">Move File</span><button id="moveFileClose" class="modal-close"><i class="ti ti-x"></i></button></div>'
+    +'<div class="modal-body"><div style="font-size:12px;color:var(--text2);margin-bottom:10px">Select a module to move this file to.</div><div style="max-height:280px;overflow:auto;padding-right:4px;display:flex;flex-direction:column">'+moduleOptions+'</div></div>',420);
+  el('moveFileClose').addEventListener('click',closeModal);
+  document.querySelectorAll('[data-move-target]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var targetId=this.getAttribute('data-move-target');
+      if(fileEntry){
+        fileEntry.moduleId=targetId;
+        modal._fileEntries=modal._fileEntries.map(function(item){
+          return String(item.id)===String(fileEntry.id)?Object.assign({}, item, {moduleId:targetId}):item;
+        });
+        var targetModule=mods.find(function(m){return m.id===targetId;});
+        closeModal();
+        openFileListModal(moduleId,moduleName,modal._fileEntries);
+        fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'move',fileId:fileEntry.id||fileEntry.id,newModuleId:targetId})}).then(function(response){if(!response.ok){throw new Error('Move failed');}return response.json();}).then(function(result){if(!result.success){toast(result.error||'Move failed','error');}else{toast('File moved successfully');}}).catch(function(e){console.error('Move failed',e);toast('Move failed','error');});
+      }
+    });
+  });
+}
+
+function openDeleteFileConfirm(modal,moduleId,moduleName,fileEntry){
+  showConfirm('Delete File','Delete "'+esc(fileEntry.fileName||fileEntry.name||'file')+'"?',function(){
+    if(!fileEntry)return;
+    modal._fileEntries=modal._fileEntries.filter(function(item){return String(item.id)!==String(fileEntry.id);});
+    fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',fileId:fileEntry.id})}).then(function(response){if(!response.ok){throw new Error('Delete failed');}return response.json();}).then(function(result){if(!result.success){toast(result.error||'Delete failed','error');}else{toast('File deleted successfully');}}).catch(function(e){console.error('Delete failed',e);toast('Delete failed','error');});
+    openFileListModal(moduleId,moduleName,modal._fileEntries);
+  },'Delete');
+}
+
+function renderFileListModalContent(modal,moduleId,moduleName,files){
+  var entries=Array.isArray(files)?files.filter(function(file){return !file.deleted;}).map(function(file){return Object.assign({}, file);}):[];
+  modal._fileEntries=entries;
+
+  var currentModuleId=String(moduleId||'').trim();
+  var currentModuleEntries=entries.filter(function(file){
+    var fileModuleId=String(file.moduleId||'').trim();
+    return fileModuleId && currentModuleId && fileModuleId===currentModuleId;
+  });
+  var unassignedEntries=entries.filter(function(file){
+    var fileModuleId=String(file.moduleId||'').trim();
+    return !fileModuleId;
+  });
+  var otherModuleEntries=entries.filter(function(file){
+    var fileModuleId=String(file.moduleId||'').trim();
+    return fileModuleId && (!currentModuleId || fileModuleId!==currentModuleId);
+  });
+
+  function renderFileItem(file){
+    var name=file.fileName||file.name||'file';
+    var url=file.downloadUrl||file.url||file.link||file.fileUrl||'';
+    return '<div class="file-list-item"><div class="file-list-name">'+esc(name)+'</div><div class="file-list-actions">'+(url?'<button class="file-action-btn" data-file-action="download" data-file-id="'+esc(file.id)+'" data-download-url="'+esc(url)+'" title="Download"><i class="ti ti-download"></i></button><button class="file-action-btn" data-file-action="view" data-file-id="'+esc(file.id)+'" data-view-url="'+esc(file.url)+'" title="View"><i class="ti ti-eye"></i></button>':'<span style="font-size:11px;color:var(--text3)">No link</span>')+(isAdm()?'<button class="file-action-btn" data-file-action="rename" data-file-id="'+esc(file.id)+'" title="Rename"><i class="ti ti-pencil"></i></button><button class="file-action-btn" data-file-action="move" data-file-id="'+esc(file.id)+'" title="Move"><i class="ti ti-arrows-right-left"></i></button><button class="file-action-btn danger" data-file-action="delete" data-file-id="'+esc(file.id)+'" title="Delete"><i class="ti ti-trash"></i></button>':'')+'</div></div>';
+  }
+
+  function renderFileGroup(title,list,emptyText){
+    if(!list.length){
+      return '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">'+esc(title)+'</div><div style="font-size:12px;padding:8px 10px;color:var(--text3)">'+esc(emptyText||'No files here yet.')+'</div></div>';
+    }
+    return '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">'+esc(title)+'</div>' + list.map(renderFileItem).join('') + '</div>';
+  }
+
+  var groupedContent=[
+    renderFileGroup('This Module',currentModuleEntries,'No files for this module yet.'),
+    renderFileGroup('Unassigned',unassignedEntries,'No unassigned files yet.'),
+    // renderFileGroup('Other Modules',otherModuleEntries,'No files assigned to other modules yet.')
+  ].join('');
+
+  modal.innerHTML='<div class="file-list-card">'+
+    '<div class="file-list-head">'+
+    '<div><div style="font-weight:700;font-size:13px">'+esc(moduleName||'Module Files')+'</div><div style="font-size:11px;color:var(--text2)">'+entries.length+' file'+(entries.length===1?'':'s')+'</div></div>'+
+    '<button id="closeFileListModalBtn" class="modal-close"><i class="ti ti-x"></i></button>'+
+    '</div>'+
+    '<div class="file-list-body">'+(groupedContent?groupedContent:'<div style="font-size:12px;color:var(--text3)">No files uploaded yet.</div>')+'</div>'+
+    '</div>';
+  document.getElementById('closeFileListModalBtn')?.addEventListener('click',closeFileListModal);
+  modal.querySelectorAll('[data-download-url]').forEach(function(btn){btn.addEventListener('click',function(){var url=this.getAttribute('data-download-url');if(url){window.open(url,'_blank','noopener,noreferrer');}});});
+  modal.querySelectorAll('[data-file-action]').forEach(
+    function(btn){
+      btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        var action=this.getAttribute('data-file-action');
+        var fileId=this.getAttribute('data-file-id');
+        var fileEntry=null;
+        if(action==='rename'||action==='move'||action==='delete'){
+          fileEntry=modal._fileEntries.find(function(item){
+            return String(item.id)===String(fileId);
+          });
+          if(!fileEntry)return;
+        }
+        var currentModuleId=moduleId||'';
+        if(action==='rename'){
+          closeFileListModal();
+          openRenameFileModal(modal,currentModuleId,moduleName,fileEntry);
+        }
+        else if(action==='move'){
+          closeFileListModal();
+          openMoveFileModal(modal,currentModuleId,moduleName,fileEntry);
+        }
+        else if(action==='delete'){
+          closeFileListModal();
+          openDeleteFileConfirm(modal,currentModuleId,moduleName,fileEntry);
+        }
+        else if(action==='download'){
+          var downloadUrl=this.getAttribute('data-download-url');
+          if(downloadUrl){window.open(downloadUrl,'_blank','noopener,noreferrer');}
+        }
+        else if(action==='view'){
+          var url=this.getAttribute('data-view-url');
+          if(url){window.open(url,'_blank','noopener,noreferrer');}
+        }
+      }
+    );
+  });
+}
+function openFileListModal(moduleId,moduleName,files){
+  closeFileListModal();
+  var modal=document.createElement('div');
+  modal.id='moduleFileListModal';
+  modal.className='file-list-modal';
+  modal.setAttribute('data-module-id',moduleId||'');
+  modal.setAttribute('data-module-name',moduleName||'');
+  document.body.appendChild(modal);
+  renderFileListModalContent(modal,moduleId,moduleName,files);
+  modal.addEventListener('click',function(e){if(e.target===modal)closeFileListModal();});
+}
+
+async function getModuleFiles(moduleId) {
+  setModuleActionLoading(moduleId,'get',true);
+  try{
+    var result=await loadFiles(moduleId);
+    var files=result.files||[];
+    if(!files.length){
+      toast('No files found','error');
+      return;
+    }
+    var moduleName='Module';
+    var moduleObj=mods.find(function(m){return m.id===moduleId;});
+    if(moduleObj&&moduleObj.name)moduleName=moduleObj.name;
+    openFileListModal(moduleId,moduleName,files);
+  }catch(e){
+    toast('Get files failed','error');
+  }finally{
+    setModuleActionLoading(moduleId,'get',false);
+    closeModuleMenu(moduleId);
+  }
+}
+
+// ── STATE ────────────────────────────────────────────────────────
+var mods=[],chks={},theme='light',page='dashboard',qry='',user=null,drId=null,drMid=null,_eMod=null,_eCol=0,_eIco=MICONS[0],_cb=null;
+
+// ── UTILS ────────────────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function cl(x){return JSON.parse(JSON.stringify(x));}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function el(id){return document.getElementById(id);}
+function gM(id){return mods.find(function(m){return m.id===id;});}
+function sMods(){return mods.slice().sort(function(a,b){return a.order-b.order;});}
+function sTasks(m){return m.tasks.slice().sort(function(a,b){return a.order-b.order;});}
+function tBy(m,p){return sTasks(m).filter(function(t){return t.priority===p;});}
+function dC(m){return m.tasks.filter(function(t){return !!chks[t.id];}).length;}
+function pct(d,t){return t===0?0:Math.round(d/t*100);}
+function totC(){return Object.keys(chks).filter(function(k){return chks[k];}).length;}
+function isAdm(){return user&&user.role==='admin';}
+function inits(n){return n.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();}
+function gUsers(){return Array.isArray(usersCache)?usersCache:[];}
+function sUsers(u){var prevUsers=gUsers();usersCache=Array.isArray(u)?u:[];saveUsersToFirebase(usersCache,prevUsers);} 
+function slugify(v){return String(v||'').toLowerCase().trim().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'item';}
+function uniqueId(base,used){var id=slugify(base);var n=1;var candidate=id;while(used.indexOf(candidate)!==-1){candidate=id+'-'+n;n++;}return candidate;}
+function uniqueTaskId(moduleName,existingTasks){var base=slugify(moduleName||'task');var n=1;var candidate=base+'_t'+n;var used=(existingTasks||[]).map(function(t){return t.id;});while(used.indexOf(candidate)!==-1){n++;candidate=base+'_t'+n;}return candidate;}
+function cKey(){return 'cft_chk_'+(user?user.id:'g');}
+function lChk(){return chks||{};}
+function svChk(){return saveChecksToFirebase();}
+function svMods(moduleId){return saveModsToFirebase(moduleId);}
+
+// ── TOAST ────────────────────────────────────────────────────────
+function toast(msg,type){
+  var c=el('toastContainer'),d=document.createElement('div');
+  if(!c)return;
+  d.className='toast '+(type||'success');
+  d.textContent=msg;
+  c.appendChild(d);
+  setTimeout(function(){d.style.opacity='0';setTimeout(function(){if(d.parentNode)d.remove();},300);},2200);
+}
+
+// ── THEME ────────────────────────────────────────────────────────
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', theme);
+  var ic = theme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  [el('themeIcon'), el('themeIconLogin')].forEach(function(x){ if(x) x.className = ic; });
+}
+function togTheme(){theme=theme==='dark'?'light':'dark';applyTheme();localStorage.setItem(THEME_KEY,theme);}
+
+// ── USERS ────────────────────────────────────────────────────────
+function showLogin(){
+  var users=gUsers(),hasAdm=users.some(function(u){return u.role==='admin';});
+  var hint=el('addUserHint');
+  if(hint)hint.textContent=hasAdm?'New users are Members (view & check only).':'First user will be Admin with full access.';
+  var ul=el('userListArea');if(!ul)return;
+  if(!users.length){ul.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">No users yet.</div>';return;}
+  var html=users.map(function(u){
+    var ab=u.role==='admin'
+      ?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:#B5D4F4;color:#0C447C">Admin</span>'
+      :'<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:#F1EFE8;color:#5F5E5A">Member</span>';
+    return '<button data-uid="'+u.id+'" class="sb-btn" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;margin-bottom:6px;border-radius:9px;border:1px solid var(--border);background:var(--card);cursor:pointer;text-align:left;font-size:13px">'
+      +'<div style="width:36px;height:36px;border-radius:50%;background:'+u.color+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">'+u.initials+'</div>'
+      +'<div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:600;color:var(--text)">'+esc(u.name)+'</span>'+ab+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">'+(u.role==='admin'?'Full access':'View &amp; check only')+'</div></div>'
+      +'<i class="ti ti-arrow-right" style="color:var(--text3)"></i></button>';
+  }).join('');
+  ul.innerHTML=html;
+  ul.querySelectorAll('[data-uid]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var uid2=this.getAttribute('data-uid');
+      var u=gUsers().find(function(x){return x.id===uid2;});
+      if(u)loginUser(u);
+    });
+  });
+}
+
+function addNewUser(){
+  var inp=el('newUserInput'),name=inp?inp.value.trim():'';
+  if(!name){if(inp)inp.focus();return;}
+  var users=gUsers();
+  if(users.find(function(u){return u.name.toLowerCase()===name.toLowerCase();})){toast('User already exists','error');return;}
+  var color=ACOLORS[users.length%ACOLORS.length];
+  var role=users.length===0?'admin':'member';
+  var u={id:uid(),name:name,email:"email@example.com",initials:inits(name),color:color,role:role};
+  if(inp)inp.value='';
+  signUpUser(u);
+}
+
+async function signUpUser(u){
+  showModal('<div class="modal-hdr"><span class="modal-title">Sign Up</span><button id="passwordClose" class="modal-close"><i class="ti ti-x"></i></button></div>'
+    +'<div class="modal-body" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div style="font-size:13px;color:var(--text)">Welcome <strong>'+esc(u.name||'User')+'</strong>.</div>'
+    +'<label class="field-label">email</label>'
+    +'<input type="email" class="field-input" id="emailInput" placeholder="Enter email..." />'
+    +'<label class="field-label">Password</label>'
+    +'<input type="password" class="field-input" id="passwordInput" placeholder="Enter password..." />'
+    +'</div>'
+    +'<div class="modal-footer"><button id="passwordCancel" class="btn-secondary">Cancel</button><button id="passwordSave" class="btn-primary">Continue</button></div>',420);
+
+  var overlay=el('mOverlay');
+  if(overlay){overlay.style.zIndex='10000';}
+
+  var passwordInput=el('passwordInput');
+  var emailInput=el('emailInput');
+  if(emailInput){emailInput.focus();emailInput.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();passwordInput.focus();}});}
+  if(passwordInput){passwordInput.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var saveBtn=el('passwordSave');if(saveBtn)saveBtn.click();}});}
+
+  el('passwordClose').addEventListener('click',closeModal);
+  el('passwordCancel').addEventListener('click',closeModal);
+  el('passwordSave').addEventListener('click',async function(){
+    var password=(passwordInput?passwordInput.value:'').trim();
+    var email=(emailInput?emailInput.value:'').trim();
+    if(!email && !password){toast('Email and Password are required','error');return;}
+    else if(!email){toast('Email is required','error');return;}
+    else if(!password){toast('Password is required','error');return;}
+    var result = await signUp(email,password)
+    if(result.success){
+      closeModal();
+
+      user=u;chks=lChk();
+      var b=el('userBadge');if(b){b.textContent=u.name;b.style.background=u.role==='admin'?'#B5D4F4':'#E9E7F7';b.style.color=u.role==='admin'?'#0C447C':'#4B3FAA';}
+      var av=el('userAvatar');if(av){av.textContent=u.initials;av.style.background=u.color;}
+      el('loginScreen').style.display='none';el('appShell').style.display='block';
+      await saveCurrentUser(u);
+      await loadUserChecksFromFirebase(u.id);
+      buildSB();render();updClr();
+      u.email=email;
+      var users=gUsers();
+      users.push(u);
+      sUsers(users);
+      toast('Welcome back, '+u.name);
+    }
+    else
+    {
+      toast(result.message || 'Invalid password','error');
+    }
+  });
+}
+
+async function loginUser(u){
+  console.log('Logging in user',u.email);
+  showModal('<div class="modal-hdr"><span class="modal-title">Login</span><button id="passwordClose" class="modal-close"><i class="ti ti-x"></i></button></div>'
+    +'<div class="modal-body" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div style="font-size:13px;color:var(--text)">Welcome <strong>'+esc(u.name||'User')+'</strong>.</div>'
+    +'<label class="field-label">Password</label>'
+    +'<input type="password" class="field-input" id="passwordInput" placeholder="Enter password..." />'
+    +'</div>'
+    +'<div class="modal-footer" style="justify-content:space-between"><div style="display:flex;gap:8px"><button id="forgotPasswordBtn" class="btn-secondary">Forgot Password?</button></div><div style="display:flex;gap:8px"><button id="passwordCancel" class="btn-secondary">Cancel</button><button id="passwordSave" class="btn-primary">Continue</button></div></div>',420);
+
+  var overlay=el('mOverlay');
+  if(overlay){overlay.style.zIndex='10000';}
+
+  var input=el('passwordInput');
+  if(input){input.focus();input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var saveBtn=el('passwordSave');if(saveBtn)saveBtn.click();}});}
+
+  el('passwordClose').addEventListener('click',closeModal);
+  el('passwordCancel').addEventListener('click',closeModal);
+  el('forgotPasswordBtn')?.addEventListener('click',function(){
+    closeModal();
+    resetPassword(u.email);
+  });
+  el('passwordSave').addEventListener('click',async function(){
+    var password=(input?input.value:'').trim();
+    if(!password){toast('Password is required','error');return;}
+    var result = await login(u.email,password)
+    if(result.success){
+      closeModal();
+
+      user=u;chks=lChk();
+      var b=el('userBadge');if(b){b.textContent=u.name;b.style.background=u.role==='admin'?'#B5D4F4':'#E9E7F7';b.style.color=u.role==='admin'?'#0C447C':'#4B3FAA';}
+      var av=el('userAvatar');if(av){av.textContent=u.initials;av.style.background=u.color;}
+      el('loginScreen').style.display='none';el('appShell').style.display='block';
+      await loadUserChecksFromFirebase(u.id);
+      buildSB();render();updClr();
+      toast('Welcome back, '+u.name);
+    }
+    else
+    {
+      toast(result.message || 'Invalid password','error');
+    }
+  });
+}
+
+async function resetPassword(email) {
+  try {
+    console.log('Sending password reset email to', email);
+    await sendPasswordResetEmail(auth, email);
+
+    toast("Password reset email sent");
+
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+async function logout(){user=null;chks={};await signOut(auth);el('appShell').style.display='none';el('loginScreen').style.display='flex';showLogin();}
+function confLogout(){showConfirm('Switch User','Go back to user selection?',function(){logout();},'Switch');}
+
+function openSidebar(){var sb=el('appSidebar');var ov=el('sidebarOverlay');if(sb){sb.classList.add('open');}if(ov){ov.classList.add('open');}}
+function closeSidebar(){var sb=el('appSidebar');var ov=el('sidebarOverlay');if(sb){sb.classList.remove('open');}if(ov){ov.classList.remove('open');}}
+function toggleSidebar(){var sb=el('appSidebar');if(sb&&sb.classList.contains('open')){closeSidebar();}else{openSidebar();}}
+
+function openManage(){
+  if(!isAdm()){toast('Admin only','error');return;}
+  var users=gUsers();
+  var showReload=false;
+  var rows=users.map(function(u){
+    var isMe=user&&u.id===user.id,adm=u.role==='admin';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="width:34px;height:34px;border-radius:50%;background:'+u.color+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">'+u.initials+'</div>'
+      +'<div style="flex:1"><div style="font-weight:600;font-size:13px;color:var(--text)">'+esc(u.name)+(isMe?' <span style="font-size:10px;color:var(--text3)">(you)</span>':'')+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">'+(adm?'Full access':'View &amp; check only')+'</div></div>'
+      +'<button data-trole="'+u.id+'" style="padding:3px 12px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid '+(adm?'#185FA5':'var(--border)')+';background:'+(adm?'#B5D4F4':'var(--btn-sec)')+';color:'+(adm?'#0C447C':'var(--text2)')+';cursor:'+(isMe?'not-allowed':'pointer')+';opacity:'+(isMe?'.4':'1')+'"'+(isMe?' disabled':'')+'>'+( adm?'Admin':'Member')+'</button>'
+      +'<button data-duser="'+u.id+'" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:'+(isMe?'not-allowed':'pointer')+';display:flex;align-items:center;justify-content:center;font-size:12px;opacity:'+(isMe?'.3':'1')+'"'+(isMe?' disabled':'')+'><i class="ti ti-trash"></i></button>'
+      +'</div>';
+  }).join('');
+  showModal('<div class="modal-hdr"><span class="modal-title">Manage Users</span><button id="mCloseBtn" class="modal-close"><i class="ti ti-x"></i></button></div>'
+    +'<div class="modal-body" style="max-height:min(60vh,520px);overflow-y:auto;padding-right:8px"><p style="font-size:12px;color:var(--text2);margin-bottom:14px">Click role badge to toggle Admin/Member.</p>'+rows+'</div>'
+    +(showReload?'<div class="modal-footer" style="justify-content:space-between">':'')
+    +(showReload?'<button id="seedBtn" style="padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-size:12px;display:flex;align-items:center;gap:5px"><i class="ti ti-database-import"></i> Reload original 310 tasks</button>':'')
+    +(showReload?'<button id="mClose2Btn" class="btn-secondary">Close</button></div>':''),480);
+  el('mCloseBtn').addEventListener('click',closeModal);
+  if(showReload){el('mClose2Btn').addEventListener('click',closeModal)};
+  if(showReload){el('seedBtn').addEventListener('click',confSeed)};
+  document.querySelectorAll('[data-trole]').forEach(function(b){b.addEventListener('click',function(){togRole(this.getAttribute('data-trole'));});});
+  document.querySelectorAll('[data-duser]').forEach(function(b){b.addEventListener('click',function(){delUser(this.getAttribute('data-duser'));});});
+}
+
+function togRole(uid2){
+  var users=gUsers(),u=users.find(function(x){return x.id===uid2;});if(!u)return;
+  if(user&&u.id===user.id){toast('Cannot change your own role','error');return;}
+  u.role=u.role==='admin'?'member':'admin';sUsers(users);toast(u.name+' is now '+u.role);openManage();buildSB();
+}
+async function delUser(uid2){
+  var users=gUsers(),u=users.find(function(x){return x.id===uid2;});if(!u)return;
+  if(user&&u.id===user.id){toast('Cannot delete yourself','error');return;}
+  var nextUsers=users.filter(function(x){return x.id!==uid2;});
+  sUsers(nextUsers);
+  await deleteUserFromFirebase(uid2);
+  toast(u.name+' removed');openManage();
+}
+async function confSeed(){
+  showConfirm('Reload Original Data','Replace all modules and tasks with the original 310 tasks?',async function(){
+    mods=cl(ORIGINAL_DATA);
+    page='dashboard';
+    buildSB();
+    render();
+    updClr();
+    closeModal();
+    await replaceModsInFirebase(mods);
+    toast('Original 310 tasks loaded');
+  },'Reload');
+}
+
+// ── SIDEBAR ──────────────────────────────────────────────────────
+function buildSB(){
+  var sm=sMods(),adm=isAdm();
+  var h='<div class="sb-label">OVERVIEW</div><button id="sbDash" class="sb-btn'+(page==='dashboard'?' active':'')+'"><i class="ti ti-layout-dashboard" style="font-size:15px"></i> Dashboard</button><div style="padding:10px 8px 4px"><span class="sb-label" style="padding:0">MODULES</span></div>';
+  if(adm)h+='<button id="sbAddMod" style="display:flex;align-items:center;gap:7px;width:calc(100% - 4px);margin:0 2px 6px;padding:7px 10px;border-radius:8px;border:1.5px dashed var(--border2);background:transparent;color:var(--active-text);cursor:pointer;font-size:12px;font-weight:600"><i class="ti ti-plus" style="font-size:14px"></i> Add New Module</button>';
+  sm.forEach(function(m){h+='<button data-mnav="'+m.id+'" class="sb-btn'+(page===m.id?' active':'')+'"><div class="sb-dot" style="background:'+m.color+'"></div><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">'+esc(m.name)+'</span><span class="sb-pct">'+pct(dC(m),m.tasks.length)+'%</span></button>';});
+  el('sbNav').innerHTML=h;
+  el('sbDash').addEventListener('click',function(){navTo('dashboard');});
+  if(adm&&el('sbAddMod'))el('sbAddMod').addEventListener('click',openAddMod);
+  document.querySelectorAll('[data-mnav]').forEach(function(b){b.addEventListener('click',function(){navTo(this.getAttribute('data-mnav'));});});
+  var f=el('sbFooter');if(f){
+    f.innerHTML=(adm?'<button id="sbManage" class="sb-btn" style="color:var(--text2);font-size:11px"><i class="ti ti-users" style="font-size:13px"></i> Manage Users</button>':'')
+      +'<button id="sbLogout" class="sb-btn" style="color:var(--text3);font-size:11px"><i class="ti ti-logout" style="font-size:13px"></i> Switch user / Logout</button>';
+    if(adm&&el('sbManage'))el('sbManage').addEventListener('click',function(){closeSidebar();openManage();});
+    el('sbLogout').addEventListener('click',function(){closeSidebar();confLogout();});
+  }
+}
+
+// ── NAV ──────────────────────────────────────────────────────────
+function navTo(p){page=p;qry='';el('searchInput').value='';closeSidebar();buildSB();render();}
+function updClr(){var n=totC(),b=el('clearBtn');if(b)b.style.display=n>0?'flex':'none';var l=el('clearBtnLabel');if(l)l.textContent='Clear Checks ('+n+')';}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function render(){
+  var mc=el('mainContent');if(!mc)return;
+  if(qry.trim().length>=2){mc.innerHTML=renderSearch();attachSREvents();return;}
+  if(page==='dashboard'){renderDash();return;}
+  var m=gM(page);if(m)renderMod(m);else renderDash();
+}
+
+function renderDash(){
+  var sm=sMods(),total=mods.reduce(function(s,m){return s+m.tasks.length;},0);
+  var done=mods.reduce(function(s,m){return s+dC(m);},0);
+  var crits=mods.reduce(function(s,m){return s+m.tasks.filter(function(t){return t.priority==='critical';}).length;},0);
+  var op=pct(done,total);
+  var isMobile=window.innerWidth<=960;
+  var collapsedClass=isMobile?' is-collapsed':'';
+  var summaryExpanded=isMobile?'false':'true';
+  var cards=sm.map(function(m){
+    var p2=pct(dC(m),m.tasks.length),cr=m.tasks.filter(function(t){return t.priority==='critical';}).length;
+    return '<div data-mnav="'+m.id+'" class="mod-card">'
+      +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">'
+      +'<div style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:'+m.bg+';color:'+m.color+'"><i class="ti '+m.icon+'"></i></div>'
+      +'<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(m.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">'+cr+' critical · '+m.tasks.length+' total</div></div>'
+      +'<span style="font-weight:700;font-size:13px;color:'+m.color+'">'+p2+'%</span></div>'
+      +'<div class="pbar"><div class="pbar-fill" style="width:'+p2+'%;background:'+m.color+'"></div></div></div>';
+  }).join('');
+  var addCard=isAdm()?'<div id="dashAddMod" class="mod-card" style="border:2px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90px;gap:8px;color:var(--text3)"><i class="ti ti-plus" style="font-size:22px"></i><span style="font-size:13px;font-weight:600">Add New Module</span></div>':'';
+  var addBtn=isAdm()?'<button id="dashAddModBtn" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-size:12.5px;font-weight:600"><i class="ti ti-plus"></i> Add Module</button>':'';
+  el('mainContent').innerHTML=
+    '<h1 style="font-size:20px;font-weight:700;margin-bottom:3px">CFT Implementation Checklist</h1>'
+    +'<p style="font-size:12px;color:var(--text2);margin-bottom:20px">Overall testing progress — BYC specific implementation</p>'
+    +'<div class="summary-shell'+collapsedClass+'">'
+    +(isMobile?'<button type="button" class="summary-toggle" data-summary-toggle aria-expanded="'+summaryExpanded+'">Overview <i class="ti ti-chevron-down"></i></button>':'')
+    +'<div class="summary-content">'
+    +'<div class="stat-grid">'
+    +'<div class="stat-card"><div class="stat-label">Total Checklist Items</div><div class="stat-val" style="color:#185FA5">'+total+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Total Modules</div><div class="stat-val">'+mods.length+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Critical Items</div><div class="stat-val" style="color:#E24B4A">'+crits+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">My Progress</div><div class="stat-val" style="color:#854F0B">'+op+'%</div></div>'
+    +'</div>'
+    +'</div>'
+    +'<div class="progress-card" style="margin-bottom:24px">'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-weight:600;font-size:13px">Overall Progress</span><span style="font-weight:700;color:#185FA5">'+op+'%</span></div>'
+    +'<div class="pbar" style="height:8px"><div class="pbar-fill" style="width:'+op+'%;background:#185FA5"></div></div>'
+    +'<p style="font-size:11px;color:var(--text3);margin-top:5px">'+done+' of '+total+' items completed (personal checkboxes)</p>'
+    +'</div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-weight:700;font-size:14px">Module Overview</span>'+addBtn+'</div>'
+    +'<div class="mod-grid">'+cards+addCard+'</div>';
+  document.querySelectorAll('[data-mnav]').forEach(function(c){c.addEventListener('click',function(){navTo(this.getAttribute('data-mnav'));});});
+  if(el('dashAddModBtn'))el('dashAddModBtn').addEventListener('click',openAddMod);
+  if(el('dashAddMod'))el('dashAddMod').addEventListener('click',openAddMod);
+  var summaryToggleBtn=document.querySelector('[data-summary-toggle]');
+  if(summaryToggleBtn){summaryToggleBtn.addEventListener('click',function(){var shell=this.closest('.summary-shell');if(!shell)return;var collapsed=shell.classList.toggle('is-collapsed');this.setAttribute('aria-expanded',collapsed?'false':'true');});}
+}
+
+function renderMod(m){
+  var total=m.tasks.length,done=dC(m),p2=pct(done,total);
+  var crit=tBy(m,'critical'),major=tBy(m,'major'),minor=tBy(m,'minor');
+  var isMobile=window.innerWidth<=960;
+  var eb=isAdm()?'<div class="module-inline-actions"><button data-emod="'+m.id+'" class="module-action-btn module-icon-btn" title="Edit"><i class="ti ti-pencil"></i><span class="module-action-label">Edit</span></button><button data-dmod="'+m.id+'" class="module-action-btn module-icon-btn" title="Delete" style="color:#E24B4A"><i class="ti ti-trash"></i><span class="module-action-label">Delete</span></button></div>':'';
+  var desktopActions=isAdm()?'<div style="display:flex;align-items:center;gap:6px"><button class="module-action-btn" data-mupload="'+m.id+'">Upload</button><button class="module-action-btn" data-mfiles="'+m.id+'">Files</button>'+eb+'</div>':'<button class="module-action-btn" data-mfiles="'+m.id+'">Files</button>';
+  var mobileMenu=isAdm()?'<div class="module-menu-wrap"><button class="module-menu-btn" data-module-menu="'+m.id+'" aria-label="Module actions"><i class="ti ti-dots-vertical"></i></button><div class="module-menu" id="moduleMenu_'+m.id+'"><button class="module-action-btn" data-mupload="'+m.id+'">Upload</button><button class="module-action-btn" data-mfiles="'+m.id+'">Files</button>'+eb+'</div></div>':'<div class="module-menu-wrap"><button class="module-menu-btn" data-module-menu="'+m.id+'" aria-label="Module actions"><i class="ti ti-dots-vertical"></i></button><div class="module-menu" id="moduleMenu_'+m.id+'"><button class="module-action-btn" data-mfiles="'+m.id+'">Files</button></div></div>';
+  var actionControls=isMobile?mobileMenu:desktopActions;
+  el('mainContent').innerHTML=
+    '<div class="module-head">'
+    +'<div style="width:42px;height:42px;border-radius:10px;background:'+m.bg+';color:'+m.color+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0"><i class="ti '+m.icon+'"></i></div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div class="module-head-title-row">'
+    +'<h1 style="font-size:19px;font-weight:700;color:var(--text);margin:0;flex:1;min-width:0">'+esc(m.name)+'</h1>'
+    +'<div class="module-head-actions">'+actionControls+'</div>'
+    +'</div>'
+    +'<p style="font-size:12px;color:var(--text2);margin-top:2px">'+total+' tasks · '+crit.length+' critical · '+major.length+' major · '+minor.length+' minor</p></div></div>'
+    +'<div class="progress-card">'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px">My Progress</span><span style="font-weight:700;color:'+m.color+'">'+p2+'%</span></div>'
+    +'<div class="pbar" style="height:6px"><div class="pbar-fill" style="width:'+p2+'%;background:'+m.color+'"></div></div>'
+    +'<p style="font-size:11px;color:var(--text3);margin-top:5px">'+done+' of '+total+' tasks checked</p></div>'
+    +renderSec(m,'critical',crit,true)+renderSec(m,'major',major,true)+renderSec(m,'minor',minor,false);
+  document.querySelectorAll('[data-mupload]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();openUploadPicker(m.id);});});
+  document.querySelectorAll('[data-mfiles]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();getModuleFiles(m.id);});});
+  if(isAdm()){
+    document.querySelectorAll('[data-emod]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();var moduleId = this.getAttribute('data-emod');closeModuleMenu(moduleId);openEditMod(moduleId);});});
+    document.querySelectorAll('[data-dmod]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();var moduleId = this.getAttribute('data-dmod');closeModuleMenu(moduleId);confDelMod(moduleId);});});
+  }
+  document.querySelectorAll('[data-module-menu]').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();toggleModuleMenu(m.id);});});
+  document.addEventListener('click',function(){closeModuleMenu(m.id);});
+  attachModEvents(m.id);
+}
+
+function toggleModuleMenu(mid){
+  var menu=el('moduleMenu_'+mid);
+  if(!menu)return;
+  var isOpen=menu.classList.contains('open');
+  closeModuleMenu(mid);
+  if(!isOpen){menu.classList.add('open');}
+}
+
+function closeModuleMenu(mid){
+  var menu=el('moduleMenu_'+mid);
+  if(menu){menu.classList.remove('open');}
+}
+
+function renderSec(m,pt,tasks,open){
+  var cfg=PRIO[pt],done=tasks.filter(function(t){return chks[t.id];}).length,key=m.id+'__'+pt,adm=isAdm();
+  var th=tasks.map(function(t){return renderTask(t,m.id);}).join('');
+  var em=!tasks.length?'<div style="font-size:12px;color:var(--text3);padding:4px">No '+cfg.label.toLowerCase()+' tasks yet.'+(adm?' Click Add to create one.':'')+'</div>':'';
+  return '<div class="sec" id="sec_'+key+'">'
+    +'<div class="sec-hdr" data-sec="'+key+'">'
+    +'<div class="sec-icon" style="background:'+cfg.sbg+';color:'+cfg.sc+'"><i class="ti '+cfg.icon+'"></i></div>'
+    +'<span class="sec-title">'+cfg.label+' Tasks</span>'
+    +'<span class="sec-meta" id="cnt_'+key+'">'+tasks.length+' tasks · '+done+' checked</span>'
+    +(adm?'<button class="sec-add-btn atbtn" data-amid="'+m.id+'" data-apt="'+pt+'" style="border-color:'+cfg.sc+'40;color:'+cfg.sc+';background:'+cfg.sbg+'"><i class="ti ti-plus" style="font-size:12px"></i> Add</button>':'')
+    +'<i class="ti ti-chevron-down sec-chev'+(open?' open':'')+'" id="schev_'+key+'"></i></div>'
+    +'<div class="sec-body'+(open?' open':'')+'" id="sbody_'+key+'">'
+    +'<div class="sec-inner"><div id="tlist_'+key+'">'+th+em+'</div><div id="form_'+key+'" style="display:none"></div>'
+    +(adm?'<button class="add-trigger atbtn" data-amid="'+m.id+'" data-apt="'+pt+'"><i class="ti ti-plus" style="font-size:13px"></i> Add '+cfg.label.toLowerCase()+' task</button>':'')
+    +'</div></div></div>';
+}
+
+function renderTask(t,mid){
+  var cfg=PRIO[t.priority]||PRIO.major,ck=!!chks[t.id],adm=isAdm();
+  return '<div class="task-item'+(ck?' checked':'')+'" id="ti_'+t.id+'" data-tid="'+t.id+'" data-mid="'+mid+'" data-pt="'+t.priority+'"'+(adm?' draggable="true"':'')+' style="'+(ck?'opacity:.6':'')+'";>'
+    +(adm?'<i class="ti ti-grip-vertical drag-grip"></i>':'<div style="width:5px"></div>')
+    +'<input type="checkbox" class="task-check" data-tid="'+t.id+'" data-mid="'+mid+'" data-pt="'+t.priority+'"'+(ck?' checked':'')+'/>'
+    +'<div class="task-dot" style="background:'+cfg.dot+'"></div>'
+    +'<span class="task-text"'+(ck?' style="text-decoration:line-through;color:var(--text3)"':'')+'>'+esc(t.text)+'</span>'
+    +'<span class="task-badge" style="background:'+cfg.bbg+';color:'+cfg.bc+'">'+cfg.label+'</span>'
+    +(adm?'<div class="task-actions"><button class="task-act-btn tebtn" data-tid="'+t.id+'" data-mid="'+mid+'" title="Edit"><i class="ti ti-pencil"></i></button><button class="task-act-btn del tdbtn" data-tid="'+t.id+'" data-mid="'+mid+'" title="Delete"><i class="ti ti-trash"></i></button><div class="task-menu-wrap"><button class="task-act-btn task-menu-btn" type="button" title="Task actions" aria-label="Task actions" data-tid="'+t.id+'" data-mid="'+mid+'"><i class="ti ti-dots"></i></button><div class="task-menu"><button class="module-action-btn tebtn" data-tid="'+t.id+'" data-mid="'+mid+'">Edit</button><button class="module-action-btn del tdbtn" data-tid="'+t.id+'" data-mid="'+mid+'">Delete</button></div></div></div>':'')
+    +'</div>';
+}
+
+function attachModEvents(mid){
+  // section toggles
+  document.querySelectorAll('[data-sec]').forEach(function(h){h.addEventListener('click',function(){togSec(this.getAttribute('data-sec'));});});
+  // add task buttons
+  document.querySelectorAll('.atbtn').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();openForm(this.getAttribute('data-amid'),this.getAttribute('data-apt'));});});
+  document.querySelectorAll('.task-menu-btn').forEach(function(btn){btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var wrap=this.closest('.task-menu-wrap');if(!wrap)return;var menu=wrap.querySelector('.task-menu');var isOpen=menu&&menu.classList.contains('open');document.querySelectorAll('.task-menu').forEach(function(m){m.classList.remove('open');});document.querySelectorAll('.task-menu-btn').forEach(function(b){b.classList.remove('is-open');b.setAttribute('aria-expanded','false');});if(menu){menu.classList.toggle('open',!isOpen);this.classList.toggle('is-open',!isOpen);this.setAttribute('aria-expanded',!isOpen?'true':'false');}});});
+  document.addEventListener('click',function(){document.querySelectorAll('.task-menu.open').forEach(function(m){m.classList.remove('open');});document.querySelectorAll('.task-menu-btn.is-open').forEach(function(b){b.classList.remove('is-open');b.setAttribute('aria-expanded','false');});});
+  // checkboxes
+  document.querySelectorAll('.task-check').forEach(function(c){c.addEventListener('change',function(){doChk(this.getAttribute('data-tid'),this.getAttribute('data-mid'),this.getAttribute('data-pt'));});c.addEventListener('click',function(e){e.stopPropagation();});});
+  // edit/del task
+  document.querySelectorAll('.tebtn').forEach(function(b){b.addEventListener('click',function(){editTask(this.getAttribute('data-mid'),this.getAttribute('data-tid'));});});
+  document.querySelectorAll('.tdbtn').forEach(function(b){b.addEventListener('click',function(){delTask(this.getAttribute('data-mid'),this.getAttribute('data-tid'));});});
+  // drag
+  if(isAdm()){
+    document.querySelectorAll('.task-item[draggable]').forEach(function(ti){
+      ti.addEventListener('dragstart',function(e){drId=this.getAttribute('data-tid');drMid=this.getAttribute('data-mid');this.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+      ti.addEventListener('dragover',function(e){e.preventDefault();if(this.getAttribute('data-tid')!==drId)this.classList.add('drag-over');});
+      ti.addEventListener('dragleave',function(){this.classList.remove('drag-over');});
+      ti.addEventListener('drop',function(e){
+        e.preventDefault();this.classList.remove('drag-over');
+        document.querySelectorAll('.task-item.dragging').forEach(function(x){x.classList.remove('dragging');});
+        var tid2=this.getAttribute('data-tid'),mid2=this.getAttribute('data-mid');
+        if(!drId||drId===tid2||drMid!==mid2)return;
+        var m=gM(mid2);if(!m)return;
+        var fi=m.tasks.findIndex(function(t){return t.id===drId;}),ti2=m.tasks.findIndex(function(t){return t.id===tid2;});
+        if(fi<0||ti2<0)return;
+        var item=m.tasks.splice(fi,1)[0];m.tasks.splice(ti2,0,item);m.tasks.forEach(function(t,i){t.order=i;});
+        svMods(m.id);drId=null;render();
+      });
+    });
+  }
+}
+
+// ── SECTION TOGGLE ───────────────────────────────────────────────
+function togSec(key){var b=el('sbody_'+key),c=el('schev_'+key);if(!b)return;var o=b.classList.toggle('open');if(c)c.classList.toggle('open',o);}
+
+// ── CHECKBOXES ───────────────────────────────────────────────────
+function doChk(tid,mid,pt){
+  chks[tid]=!chks[tid];svChk();
+  var ti=el('ti_'+tid);
+  if(ti){ti.classList.toggle('checked',!!chks[tid]);ti.style.opacity=chks[tid]?'.6':'1';var txt=ti.querySelector('.task-text');if(txt)txt.style.textDecoration=chks[tid]?'line-through':'';}
+  var m=gM(mid);if(m){var tasks=tBy(m,pt),cnt=el('cnt_'+mid+'__'+pt);if(cnt)cnt.textContent=tasks.length+' tasks · '+tasks.filter(function(t){return chks[t.id];}).length+' checked';}
+  updClr();
+}
+async function clearAllChecks(){
+  chks={};
+  try{
+    await svChk();
+    updClr();
+    render();
+    toast('All checkboxes cleared');
+  }
+  catch(e){
+    toast('Failed to clear checks','error');
+  }
+}
+
+// ── INLINE FORM ──────────────────────────────────────────────────
+function openForm(mid,pt,eid,etxt,epr){
+  eid=eid||'';etxt=etxt||'';epr=epr||pt;
+  var key=mid+'__'+pt,cfg=PRIO[epr];
+  var body=el('sbody_'+key);if(body&&!body.classList.contains('open')){body.classList.add('open');var ch=el('schev_'+key);if(ch)ch.classList.add('open');}
+  var fd=el('form_'+key);if(!fd)return;
+  fd.style.display='';
+  fd.innerHTML='<div class="inline-form"><textarea id="ftxt_'+key+'" placeholder="Task description...">'+esc(etxt)+'</textarea><div class="inline-form-row"><span style="font-size:11px;color:var(--text2);font-weight:600">Priority:</span><input type="hidden" id="fprio_'+key+'" value="'+epr+'"/>'+(['critical','major','minor'].map(function(p){var pc=PRIO[p],sel=epr===p;return'<button type="button" data-fpk="'+key+'" data-fpv="'+p+'" class="prio-btn fpbtn" style="padding:3px 9px;border-radius:8px;font-size:11px;font-weight:600;border:1px solid '+(sel?pc.bc:'var(--border)')+';background:'+(sel?pc.bbg:'transparent')+';color:'+(sel?pc.bc:'var(--text2)')+';cursor:pointer">'+pc.label+'</button>';}).join(''))+'<button type="button" data-fck="'+key+'" class="form-cancel fcancel">Cancel</button><button type="button" id="fsave_'+key+'" data-fmid="'+mid+'" data-fpt="'+pt+'" data-feid="'+eid+'" class="form-save" style="background:'+cfg.sc+'">'+(eid?'Save Changes':'Add Task')+'</button></div></div>';
+  setTimeout(function(){fd.scrollIntoView({behavior:'smooth',block:'nearest'});},60);
+  fd.querySelectorAll('.fpbtn').forEach(function(b){b.addEventListener('click',function(){selPr(this.getAttribute('data-fpk'),this.getAttribute('data-fpv'));});});
+  fd.querySelectorAll('.fcancel').forEach(function(b){b.addEventListener('click',function(){closeForm(this.getAttribute('data-fck'));});});
+  var sb=el('fsave_'+key);if(sb)sb.addEventListener('click',function(){svForm(this.getAttribute('data-fmid'),this.getAttribute('data-fpt'),this.getAttribute('data-feid'));});
+  var ta=el('ftxt_'+key);if(ta){ta.addEventListener('keydown',function(e){if(e.ctrlKey&&e.key==='Enter')svForm(mid,pt,eid);});setTimeout(function(){ta.focus();ta.selectionStart=ta.value.length;},30);}
+}
+function selPr(key,p){
+  el('fprio_'+key).value=p;var cfg=PRIO[p];
+  ['critical','major','minor'].forEach(function(pp){var b=document.querySelector('[data-fpk="'+key+'"][data-fpv="'+pp+'"]');if(!b)return;var pc=PRIO[pp],sel=pp===p;b.style.background=sel?pc.bbg:'transparent';b.style.color=sel?pc.bc:'var(--text2)';b.style.borderColor=sel?pc.bc:'var(--border)';});
+  var s=el('fsave_'+key);if(s)s.style.background=cfg.sc;
+}
+function closeForm(key){var fd=el('form_'+key);if(fd){fd.style.display='none';fd.innerHTML='';}}
+async function svForm(mid,pt,eid){
+  var key=mid+'__'+pt,ta=el('ftxt_'+key),pr=el('fprio_'+key);
+  var txt=ta?ta.value.trim():'';if(!txt)return;
+  var prio=pr?pr.value:pt,m=gM(mid);if(!m)return;
+  var savedTaskId = null;
+  if(eid){var t=m.tasks.find(function(x){return x.id===eid;});if(t){t.text=txt;t.priority=prio;savedTaskId=t.id;}}
+  else{var newTask={id:uniqueTaskId(m.name,m.tasks),text:txt,priority:prio,order:m.tasks.length};m.tasks.push(newTask);savedTaskId=newTask.id;}
+  try{
+    await updateModsToFirebase(mid, savedTaskId);
+    closeForm(key);buildSB();render();
+    toast(eid?'Task updated':'Task added to '+PRIO[prio].label);
+  }
+  catch(e){
+    toast(eid?'Failed to update task':'Failed to add task','error');
+  }
+}
+function setTaskEditPriority(p){['critical','major','minor'].forEach(function(pp){var b=document.querySelector('[data-task-prio-btn][data-task-prio="'+pp+'"]');if(!b)return;var pc=PRIO[pp],sel=pp===p;b.style.background=sel?pc.bbg:'transparent';b.style.color=sel?pc.bc:'var(--text2)';b.style.borderColor=sel?pc.bc:'var(--border)';});var h=el('taskEditPrio');if(h)h.value=p;}
+function openTaskEditModal(mid,tid){var m=gM(mid);if(!m)return;var t=m.tasks.find(function(x){return x.id===tid;});if(!t)return;var selected=t.priority||'major';var prioButtons=['critical','major','minor'].map(function(p){var pc=PRIO[p],sel=p===selected;return'<button type="button" data-task-prio-btn data-task-prio="'+p+'" class="prio-btn" style="padding:3px 9px;border-radius:8px;font-size:11px;font-weight:600;border:1px solid '+(sel?pc.bc:'var(--border)')+';background:'+(sel?pc.bbg:'transparent')+';color:'+(sel?pc.bc:'var(--text2)')+';cursor:pointer">'+pc.label+'</button>';}).join('');
+  showModal('<div class="modal-hdr"><span class="modal-title">Edit Task</span><button id="taskEditClose" class="modal-close"><i class="ti ti-x"></i></button></div>'
+    +'<div class="modal-body" style="display:flex;flex-direction:column;gap:12px"><label class="field-label">Task Description</label><textarea class="field-input" id="taskEditText" rows="5" placeholder="Task description..." style="resize:none;min-height:120px">'+esc(t.text)+'</textarea><label class="field-label">Priority</label><div style="display:flex;gap:6px;flex-wrap:wrap">'+prioButtons+'</div></div>'
+    +'<div class="modal-footer"><button id="taskEditCancel" class="btn-secondary">Cancel</button><button id="taskEditSave" class="btn-primary">Save Changes</button></div>',480);
+  el('taskEditClose').addEventListener('click',closeModal);
+  el('taskEditCancel').addEventListener('click',closeModal);
+  document.querySelectorAll('[data-task-prio-btn]').forEach(function(b){b.addEventListener('click',function(){setTaskEditPriority(this.getAttribute('data-task-prio'));});});
+  var txt=el('taskEditText');if(txt){txt.focus();txt.setSelectionRange(txt.value.length,txt.value.length);}
+  var saveBtn=el('taskEditSave');if(saveBtn){saveBtn.addEventListener('click',async function(){var text=txt?txt.value.trim():'';if(!text){toast('Task description required','error');return;}var prio=el('taskEditPrio')?el('taskEditPrio').value:selected;var task=m.tasks.find(function(x){return x.id===tid;});if(!task)return;task.text=text;task.priority=prio;try{await updateModsToFirebase(mid, tid);closeModal();buildSB();render();toast('Task updated');}catch(e){toast('Failed to update task','error');}});}
+  var hidden=document.createElement('input');hidden.type='hidden';hidden.id='taskEditPrio';hidden.value=selected;el('taskEditText').parentNode.insertBefore(hidden,el('taskEditText').nextSibling);
+  setTaskEditPriority(selected);
+}
+function editTask(mid,tid){openTaskEditModal(mid,tid);}
+function delTask(mid,tid){var m=gM(mid);if(!m)return;var t=m.tasks.find(function(x){return x.id===tid;});if(!t)return;showConfirm('Delete Task',t.text.slice(0,80)+(t.text.length>80?'...':''),async function(){m.tasks=m.tasks.filter(function(x){return x.id!==tid;});delete chks[tid];try{await deleteTaskFromFirebase(tid);buildSB();render();updClr();toast('Task deleted');}catch(e){toast('Failed to delete task','error');}});}
+
+// ── MODULE CRUD ──────────────────────────────────────────────────
+function openAddMod(){closeSidebar();_eMod=null;_eCol=0;_eIco=MICONS[0];showModModal('Add Module','');}
+function openEditMod(id){var m=gM(id);if(!m)return;_eMod=id;_eCol=Math.max(0,MCOLS.findIndex(function(c){return c.c===m.color;}));_eIco=m.icon;showModModal('Edit Module',m.name);}
+function showModModal(title,nv){
+  var sw=MCOLS.map(function(c,i){return'<div data-ci="'+i+'" class="color-swatch'+(_eCol===i?' selected':'')+'" style="background:'+c.c+'"></div>';}).join('');
+  var ic=MICONS.map(function(i){return'<button data-ic="'+i+'" class="icon-opt'+(_eIco===i?' selected':'')+'" style="'+(_eIco===i?'border-color:#185FA5;background:#E6F1FB;color:#185FA5;':'')+'"><i class="ti '+i+'"></i></button>';}).join('');
+  showModal('<div class="modal-hdr"><span class="modal-title">'+title+'</span><button id="mmc" class="modal-close"><i class="ti ti-x"></i></button></div>'
+    +'<div class="modal-body" style="display:flex;flex-direction:column;gap:16px"><div><label class="field-label">Module Name</label><input class="field-input" id="modNI" value="'+esc(nv)+'" placeholder="Module name..."/></div><div><label class="field-label">Color</label><div style="display:flex;gap:8px;flex-wrap:wrap">'+sw+'</div></div><div><label class="field-label">Icon</label><div style="display:flex;gap:6px;flex-wrap:wrap">'+ic+'</div></div></div>'
+    +'<div class="modal-footer"><button id="mmcancel" class="btn-secondary">Cancel</button><button id="mmsave" class="btn-primary" style="background:'+MCOLS[_eCol].c+'">'+(_eMod?'Save Changes':'Add Module')+'</button></div>',480);
+  el('mmc').addEventListener('click',closeModal);
+  el('mmcancel').addEventListener('click',closeModal);
+  el('mmsave').addEventListener('click',svMod);
+  var ni=el('modNI');if(ni){ni.focus();ni.addEventListener('keydown',function(e){if(e.key==='Enter')svMod();});}
+  document.querySelectorAll('.color-swatch').forEach(function(s){s.addEventListener('click',function(){sCol(parseInt(this.getAttribute('data-ci')));});});
+  document.querySelectorAll('.icon-opt').forEach(function(b){b.addEventListener('click',function(){sIco(this.getAttribute('data-ic'));});});
+}
+function sCol(i){_eCol=i;document.querySelectorAll('.color-swatch').forEach(function(s,j){s.classList.toggle('selected',j===i);});var b=el('mmsave');if(b)b.style.background=MCOLS[i].c;}
+function sIco(i){_eIco=i;document.querySelectorAll('.icon-opt').forEach(function(b){b.classList.remove('selected');b.style.borderColor='';b.style.background='';b.style.color='';});var b=document.querySelector('[data-ic="'+i+'"]');if(b){b.classList.add('selected');b.style.borderColor='#185FA5';b.style.background='#E6F1FB';b.style.color='#185FA5';}}
+async function svMod(){var ni=el('modNI'),name=ni?ni.value.trim():'';if(!name){toast('Name required','error');return;}var mc=MCOLS[_eCol]||MCOLS[0];var targetModuleId=null;if(_eMod){var m=gM(_eMod);if(m){m.name=name;m.color=mc.c;m.bg=mc.bg;m.icon=_eIco;targetModuleId=m.id;}}else{var newModule={id:uniqueId(name,mods.map(function(x){return x.id;})),name:name,icon:_eIco,color:mc.c,bg:mc.bg,order:mods.length,tasks:[]};mods.push(newModule);targetModuleId=newModule.id;}try{await updateModsToFirebase(targetModuleId);closeModal();buildSB();render();toast(_eMod?'Module updated':'Module added');}catch(e){toast(_eMod?'Failed to update module':'Failed to add module','error');}}
+function confDelMod(id){var m=gM(id);if(!m)return;showConfirm('Delete Module','Delete "'+m.name+'" and all '+m.tasks.length+' tasks?',async function(){m.tasks.forEach(function(t){delete chks[t.id];});mods=mods.filter(function(x){return x.id!==id;});try{await deleteModuleFromFirebase(id);page='dashboard';buildSB();render();updClr();toast('Module deleted');}catch(e){toast('Failed to delete module','error');}});}
+
+// ── SEARCH ───────────────────────────────────────────────────────
+function renderSearch(){
+  var q=qry.toLowerCase().trim(),res=[];
+  mods.forEach(function(m){m.tasks.forEach(function(t){if(t.text.toLowerCase().indexOf(q)>=0)res.push({m:m,t:t});});});
+  function hl(s){var i=s.toLowerCase().indexOf(q);if(i<0)return esc(s);return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length));}
+  return '<h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Search: "'+esc(qry)+'"</h2>'
+    +'<p style="font-size:12px;color:var(--text2);margin-bottom:18px">'+res.length+' result'+(res.length!==1?'s':'')+' found</p>'
+    +(res.length?res.map(function(r){var cfg=PRIO[r.t.priority]||PRIO.major;return'<div data-mnav="'+r.m.id+'" class="sr-item"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;background:'+r.m.bg+';color:'+r.m.color+';display:inline-block;margin-bottom:4px">'+esc(r.m.name)+'</span><div style="display:flex;align-items:flex-start;gap:8px"><div class="task-dot" style="background:'+cfg.dot+';margin-top:4px"></div><div style="flex:1;font-size:12.5px;color:var(--text)">'+hl(r.t.text)+'</div><span class="task-badge" style="background:'+cfg.bbg+';color:'+cfg.bc+'">'+cfg.label+'</span></div></div>';}).join(''):'<div style="text-align:center;padding:40px;color:var(--text3)">No tasks found.</div>');
+}
+function attachSREvents(){document.querySelectorAll('[data-mnav]').forEach(function(c){c.addEventListener('click',function(){navTo(this.getAttribute('data-mnav'));});});}
+
+// ── MODAL ────────────────────────────────────────────────────────
+function showModal(html,maxW){maxW=maxW||480;var o=el('mOverlay');if(!o){o=document.createElement('div');o.id='mOverlay';o.className='modal-overlay';document.body.appendChild(o);}o.innerHTML='<div class="modal" style="max-width:'+maxW+'px">'+html+'</div>';o.style.display='flex';o.onclick=function(e){if(e.target===o)closeModal();};}
+function closeModal(){var o=el('mOverlay');if(o)o.style.display='none';}
+function showConfirm(title,msg,cb,lbl){lbl=lbl||'Delete';_cb=cb;showModal('<div class="modal-hdr"><div style="display:flex;align-items:center;gap:12px"><div style="width:38px;height:38px;border-radius:8px;background:#FCEBEB;display:flex;align-items:center;justify-content:center;font-size:18px;color:#A32D2D"><i class="ti ti-alert-triangle"></i></div><span class="modal-title">'+title+'</span></div><button id="ccb" class="modal-close"><i class="ti ti-x"></i></button></div><div class="modal-body"><p style="font-size:13px;color:var(--text2);line-height:1.6">'+esc(msg)+'</p></div><div class="modal-footer"><button id="ccb2" class="btn-secondary">Cancel</button><button id="rcb" class="btn-danger">'+lbl+'</button></div>',400);
+  el('ccb').addEventListener('click',function(){_cb=null;closeModal();});
+  el('ccb2').addEventListener('click',function(){_cb=null;closeModal();});
+  el('rcb').addEventListener('click',function(){var cb2=_cb;_cb=null;closeModal();if(cb2){cb2();}});
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+async function init(){
+  theme=localStorage.getItem(THEME_KEY)||'light';applyTheme();
+  // mods=cl(ORIGINAL_DATA);
+  try{
+    await initFirebase();
+    await loadUsersFromFirebase();
+
+    onAuthStateChanged(auth, async(u) => {
+      if (u) {
+        console.log("Logged in:", u.email);
+        var found=gUsers().find(function(x){return x.email===u.email;});
+        if(found){
+          user=found;chks=lChk();
+          var b=el('userBadge');if(b){b.textContent=user.name;b.style.background=user.role==='admin'?'#B5D4F4':'#E9E7F7';b.style.color=user.role==='admin'?'#0C447C':'#4B3FAA';}
+          var av=el('userAvatar');if(av){av.textContent=user.initials;av.style.background=user.color;}
+          el('loginScreen').style.display='none';el('appShell').style.display='block';
+          await loadUserChecksFromFirebase(user.id);
+          buildSB();render();updClr();
+        }else{showLogin();el('loginScreen').style.display='flex';el('appShell').style.display='none';}
+      } else {
+        console.log("Not logged in");
+        showLogin();el('loginScreen').style.display='flex';el('appShell').style.display='none';
+      }
+    });
+  }catch(e){console.error('Initial Firebase seed failed',e);showLogin();el('loginScreen').style.display='flex';el('appShell').style.display='none';}
+  // bind all static buttons via addEventListener (NO inline onclick)
+  el('addUserBtn').addEventListener('click',addNewUser);
+  el('newUserInput').addEventListener('keydown',function(e){if(e.key==='Enter')addNewUser();});
+  el('themeBtnLogin').addEventListener('click',togTheme);
+  el('themeBtn').addEventListener('click',togTheme);
+  el('mobileMenuBtn').addEventListener('click',toggleSidebar);
+  el('sidebarOverlay').addEventListener('click',closeSidebar);
+  el('clearBtn').addEventListener('click',clearAllChecks);
+  el('userAvatar').addEventListener('click',confLogout);
+  el('searchInput').addEventListener('input',function(){qry=this.value;buildSB();render();});
+  window.addEventListener('resize',function(){if(window.innerWidth>960){closeSidebar();}});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeSidebar();}});
+  var fbLoaded=false;
+  try{fbLoaded=await loadFromFirebase();}catch(e){console.error(e);}
+  if(!fbLoaded){
+    if(mods.length){await updateModsToFirebase();}
+    if(gUsers().length){await saveUsersToFirebase(gUsers(),[]);}
+    if(user){buildSB();render();}
+  } else if(user){
+    buildSB();render();updClr();
+  }
+}
+
+// Wait for DOM then init
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){init();});}else{init();}
+</script>
+  </body>
+</html>
